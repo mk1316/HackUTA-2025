@@ -13,14 +13,14 @@ export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
   const [showParsedModal, setShowParsedModal] = useState(false);
   const [parsedData, setParsedData] = useState<ParsedSyllabus | null>(null);
   const [savedEvents, setSavedEvents] = useState<ParsedEvent[]>([]);
 
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
-    setError(null);
+    setError(undefined);
     
     // Simulate processing
     setIsProcessing(true);
@@ -32,7 +32,7 @@ export default function Home() {
   const handleFileRemove = () => {
     setSelectedFile(null);
     setShowPDFPreview(false);
-    setError(null);
+    setError(undefined);
   };
 
   const handlePreviewPDF = () => {
@@ -45,7 +45,7 @@ export default function Home() {
     if (!selectedFile) return;
     
     setIsProcessing(true);
-    setError(null);
+    setError(undefined);
     
     try {
       // Simulate API call
