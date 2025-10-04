@@ -1,80 +1,89 @@
-<<<<<<< HEAD
-# Syllabus Text Extraction & AI Processing Module
+# HACKUTA NLP Project
 
-A comprehensive Python module for extracting text from PDF syllabi and processing it with Google Gemini AI to produce structured JSON output.
+AI-powered syllabus parsing system with intelligent study scheduling and optimization.
 
-## Features
+## 📁 Project Structure
 
-- **Primary extraction**: Uses `pdfplumber` for fast text extraction from text-based PDFs
-- **OCR fallback**: Automatically falls back to OCR using `pytesseract` if text extraction is insufficient
-- **AI Processing**: Google Gemini AI analysis to extract structured information (subjects, topics, deadlines)
-- **JSON Output**: Produces clean, structured JSON with study plans and deadlines
-- **Robust error handling**: Handles various PDF formats and edge cases
-- **Detailed logging**: Comprehensive logging for debugging during hackathon development
-- **Statistics**: Provides extraction statistics and validation
-
-## Installation
-
-1. Install Python dependencies:
-```bash
-pip install -r requirements.txt
+```
+HACKUTA/NLP/
+└── ai_ml/                    # Main AI/ML application
+    ├── main.py               # FastAPI application
+    ├── text_extraction.py    # PDF processing and text extraction
+    ├── study_estimator.py    # Study scheduling and time estimation
+    ├── gemini_teacher.py     # AI optimization and recommendations
+    ├── requirements.txt      # Python dependencies
+    ├── README.md             # Detailed documentation
+    ├── helpers/              # Helper modules (empty)
+    └── sample_syllabi/       # Test PDF files
+        ├── sample1.pdf
+        └── sample2.pdf
 ```
 
-2. Install system dependencies for OCR:
-   - **macOS**: `brew install tesseract`
-   - **Ubuntu/Debian**: `sudo apt-get install tesseract-ocr`
-   - **Windows**: Download from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
+## 🚀 Quick Start
 
-3. Set up Google AI API key:
-   - Get API key from: https://makersuite.google.com/app/apikey
-   - Set environment variable: `export GEMINI_API_KEY='your-api-key-here'`
+1. **Navigate to the AI/ML directory:**
+   ```bash
+   cd ai_ml
+   ```
 
-## Usage
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-### Basic Text Extraction
-```python
-from main import extract_text
+3. **Install system dependencies:**
+   ```bash
+   # macOS
+   brew install tesseract
+   
+   # Ubuntu/Debian
+   sudo apt-get install tesseract-ocr
+   ```
 
-# Extract text from a PDF
-text = extract_text("path/to/syllabus.pdf")
-print(text)
-```
+4. **Set up API key (optional):**
+   ```bash
+   export GEMINI_API_KEY='your-api-key-here'
+   ```
 
-### Complete AI Processing Pipeline
-```python
-from main import extract_text
-from gemini_processor import analyze_syllabus_text, summarize_study_plan
+5. **Run the application:**
+   ```bash
+   python main.py
+   ```
 
-# Extract text and analyze with AI
-text = extract_text("path/to/syllabus.pdf")
-analysis = analyze_syllabus_text(text)
-print(summarize_study_plan(analysis))
-```
+## 🌐 API Endpoints
 
-### Integrated Example
-```python
-# Run the complete pipeline
-python integrated_example.py
-```
+- `GET /` - Health check
+- `GET /health` - System status
+- `POST /parse` - Extract JSON from PDFs
+- `POST /estimate` - Generate study schedule
+- `GET /courses/sample` - Sample course information
+- `POST /test/parse-sample` - Test with sample PDFs
 
-## Testing
+## 📚 Features
 
-Run the module directly to test with a sample PDF:
+- **PDF Text Extraction**: Robust processing with OCR fallback
+- **AI-Powered Analysis**: Gemini AI for deep syllabus understanding
+- **Intelligent Optimization**: Chapter reordering and study time estimation
+- **Study Scheduling**: Combined daily/weekly schedules from multiple courses
+- **RESTful API**: FastAPI endpoints for easy frontend integration
+- **CORS Support**: Ready for frontend integration
 
-```bash
-python main.py
-```
+## 🧪 Testing
 
-Make sure to place test PDFs in a `sample_syllabi/` directory or modify the test path in the code.
+The project includes comprehensive testing capabilities:
+- Multi-PDF processing (2-4+ PDFs)
+- AI optimization features
+- Frontend-ready JSON output
+- Error handling and logging
 
-## Requirements
+## 📖 Documentation
 
-- Python 3.7+
-- pdfplumber
-- pdf2image
-- pytesseract
-- Pillow
-- tesseract-ocr (system dependency)
-=======
-# HackUTA 2025 Project
->>>>>>> main
+For detailed documentation, see `ai_ml/README.md`.
+
+## 🎯 Hackathon Ready
+
+This project is fully functional and ready for hackathon demonstration with:
+- Complete AI/ML pipeline
+- FastAPI backend
+- Multi-PDF support
+- Frontend integration capabilities
