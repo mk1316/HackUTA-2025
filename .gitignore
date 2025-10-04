@@ -33,3 +33,10 @@ Thumbs.db
 temp/
 tmp/
 
+# Node.js
+node_modules/
+
+# Runtime/generated files (NLP specific)
+analysis_result.json
+deep_analysis_result.json
+optimized_analysis_result.json
