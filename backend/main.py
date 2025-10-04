@@ -1,39 +1,70 @@
-import fastapi
-import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 import os
-from pydantic import BaseModel
-from google import genai
+from dotenv import load_dotenv
 
-app = fastapi.FastAPI()
+# Load environment variables
+load_dotenv()
 
-# Get API key from environment variable
-api_key = os.getenv("GEMINI_API_KEY", "your_gemini_api_key_here")
-if api_key == "your_gemini_api_key_here":
-    raise ValueError("Please set GEMINI_API_KEY environment variable with your actual API key")
+# Import routers
+from routers import upload, calendar, auth
+from db.database import connect_to_firebase, close_firebase_connection
 
-client = genai.Client(api_key=api_key)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    await connect_to_firebase()
+    yield
+    # Shutdown
+    await close_firebase_connection()
 
-class UserInput(BaseModel):
-    content: str
+# Initialize FastAPI app
+app = FastAPI(
+    title="SyllabusSync Backend API",
+    description="Backend API for SyllabusSync - AI-powered syllabus processing and calendar integration",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    lifespan=lifespan
+)
+
+# CORS configuration
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+AI_ML_URL = os.getenv("AI_ML_URL", "http://localhost:5050")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[FRONTEND_ORIGIN, AI_ML_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(upload.router)
+app.include_router(calendar.router)
+app.include_router(auth.router)
 
 @app.get("/")
-def read_root():
-    return {"message": "Online"}
+async def root():
+    """Root endpoint to check if backend is running"""
+    return {"status": "Backend running", "message": "SyllabusSync API is operational"}
 
-@app.post("/")
-def generate_content(user_input: UserInput):
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash", contents=user_input.content
-        )
-        return {"message": response.text}
-    except Exception as e:
-        return {"error": f"Failed to generate content: {str(e)}"}
-
-
-def main():
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": "2024-01-01T00:00:00Z",
+        "version": "1.0.0"
+    }
 
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True
+    )
