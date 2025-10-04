@@ -1,9 +1,42 @@
+# Python
 __pycache__/
-.env
-venv/
-node_modules/
-__pycache__/
-uploads/
-.idea/
-.DS_Store
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.so
 
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# UV package manager
+.uv/
+
+# Temporary files
+temp/
+tmp/
+
+# Node.js
+node_modules/
+
+# Runtime/generated files (NLP specific)
+analysis_result.json
+deep_analysis_result.json
+optimized_analysis_result.json
