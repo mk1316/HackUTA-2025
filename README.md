@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Syllabus Text Extraction & AI Processing Module
 
 A comprehensive Python module for extracting text from PDF syllabi and processing it with Google Gemini AI to produce structured JSON output.
@@ -74,3 +75,6 @@ Make sure to place test PDFs in a `sample_syllabi/` directory or modify the test
 - pytesseract
 - Pillow
 - tesseract-ocr (system dependency)
+=======
+# HackUTA 2025 Project
+>>>>>>> main
