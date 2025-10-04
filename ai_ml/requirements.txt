@@ -70,16 +70,12 @@ Pillow
 
 # Google Generative AI (alternative to google-genai)
 google-generativeai
-<<<<<<< HEAD:ai_ml/requirements.txt
-fastapi
-uvicorn
+
+# FastAPI file upload support
 python-multipart
-requests
-=======
 
 # =============================================================================
 # SHARED DEPENDENCIES
 # =============================================================================
 # Note: Some dependencies may be shared between components
 # Version conflicts should be resolved by using the latest compatible version
->>>>>>> origin/main:requirements.txt
