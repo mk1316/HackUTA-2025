@@ -33,3 +33,4 @@ fi
 echo ""
 echo "Setup complete! You can now run:"
 echo "  python main.py"
+
