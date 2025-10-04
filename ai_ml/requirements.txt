@@ -3,3 +3,7 @@ pdf2image
 pytesseract
 Pillow
 google-generativeai
+fastapi
+uvicorn
+python-multipart
+requests
