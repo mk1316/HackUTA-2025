@@ -1,1 +1,1 @@
-# HackUTA-2025
+# HackUTA 2025 Project
