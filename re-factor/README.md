@@ -7,19 +7,24 @@ A Next.js application that automatically extracts assignments, exams, projects, 
 - Drag and drop syllabus PDF upload
 - AI-powered extraction of academic deadlines and events
 - Structured JSON output with assignments, exams, and projects
+- **NEW**: Humorous audio summaries using ElevenLabs text-to-speech
 - Real-time processing status with visual feedback
 - Clean, responsive UI with dark mode support
 - Automatic date formatting (YYYY-MM-DD) for calendar integration
+- Audio playback controls with play/pause functionality
 
 ## Getting Started
 
 ### Prerequisites
 
 1. Get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a `.env.local` file in the root directory with your API key:
+2. Get an ElevenLabs API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys)
+3. Create a `.env.local` file in the root directory with your API keys:
 
 ```bash
-GEMINI_API_KEY=your_actual_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+ELEVENLABS_API_KEY=your_elevenlabs_api_key_here
+ELEVENLABS_VOICE_ID=your_preferred_voice_id_here
 ```
 
 ### Installation
