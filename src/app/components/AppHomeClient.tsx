@@ -16,9 +16,25 @@ type SyllabusData = {
     office_hours?: string;
   };
   class_schedule?: string;
-  homework?: Array<{ title: string; due_date: string; description?: string }>;
-  exams?: Array<{ type: string; date: string; description?: string }>;
-  projects?: Array<{ title: string; due_date: string; description?: string }>;
+  homework?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  exams?: Array<{ type: string; date: string; time?: string; description?: string }>;
+  projects?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  office_hours?: Array<{
+    day: string;
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
+  class_meetings?: Array<{
+    days: string[];
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
 };
 
 export default function AppHomeClient() {
@@ -71,6 +87,9 @@ export default function AppHomeClient() {
         throw new Error('Failed to process file');
       }
       const data = await response.json();
+      console.log('📊 API Response:', data.result);
+      console.log('🏢 Office Hours:', data.result?.office_hours);
+      console.log('📚 Class Meetings:', data.result?.class_meetings);
       setResult(data.result as SyllabusData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

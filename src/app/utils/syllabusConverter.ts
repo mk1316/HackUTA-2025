@@ -13,9 +13,25 @@ type SyllabusData = {
     office_hours?: string;
   };
   class_schedule?: string;
-  homework?: Array<{ title: string; due_date: string; description?: string }>;
-  exams?: Array<{ type: string; date: string; description?: string }>;
-  projects?: Array<{ title: string; due_date: string; description?: string }>;
+  homework?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  exams?: Array<{ type: string; date: string; time?: string; description?: string }>;
+  projects?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  office_hours?: Array<{
+    day: string;
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
+  class_meetings?: Array<{
+    days: string[];
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
 };
 
 export function convertSyllabusToEvents(syllabus: SyllabusData): ParsedEvent[] {
@@ -29,6 +45,7 @@ export function convertSyllabusToEvents(syllabus: SyllabusData): ParsedEvent[] {
         title: hw.title || 'Homework',
         type: 'assignment',
         dueDate: hw.due_date || new Date().toISOString(),
+        dueTime: hw.due_time,
         description: hw.description,
         status: 'pending',
         priority: 'medium',
@@ -45,6 +62,7 @@ export function convertSyllabusToEvents(syllabus: SyllabusData): ParsedEvent[] {
         title: exam.type || 'Exam',
         type: 'exam',
         dueDate: exam.date || new Date().toISOString(),
+        dueTime: exam.time,
         description: exam.description,
         status: 'pending',
         priority: 'high',
@@ -61,10 +79,54 @@ export function convertSyllabusToEvents(syllabus: SyllabusData): ParsedEvent[] {
         title: project.title || 'Project',
         type: 'project',
         dueDate: project.due_date || new Date().toISOString(),
+        dueTime: project.due_time,
         description: project.description,
         status: 'pending',
         priority: 'high',
         courseCode: syllabus.course_code,
+      });
+    });
+  }
+
+  // Convert office hours to recurring events
+  if (syllabus.office_hours && Array.isArray(syllabus.office_hours)) {
+    syllabus.office_hours.forEach((oh, index) => {
+      events.push({
+        id: `office-hours-${index}`,
+        title: `Office Hours - ${oh.day}`,
+        type: 'office_hours',
+        dueDate: oh.start_date || new Date().toISOString(),
+        dueTime: oh.time,
+        description: `Office Hours\nTime: ${oh.time}\nLocation: ${oh.location || 'TBD'}\nDay: ${oh.day}`,
+        location: oh.location,
+        status: 'pending',
+        priority: 'low',
+        courseCode: syllabus.course_code,
+        recurrence: 'weekly',
+        endDate: oh.end_date,
+      });
+    });
+  }
+
+  // Convert class meetings to recurring events
+  if (syllabus.class_meetings && Array.isArray(syllabus.class_meetings)) {
+    syllabus.class_meetings.forEach((cm, index) => {
+      // Create one event for the class meeting (will recur on specified days)
+      const daysStr = cm.days.join(', ');
+      events.push({
+        id: `class-${index}`,
+        title: `${syllabus.course_name || syllabus.course_code || 'Class'}`,
+        type: 'class',
+        dueDate: cm.start_date || new Date().toISOString(),
+        dueTime: cm.time,
+        description: `Class Meeting\nDays: ${daysStr}\nTime: ${cm.time}\nLocation: ${cm.location || 'TBD'}`,
+        location: cm.location,
+        status: 'pending',
+        priority: 'medium',
+        courseCode: syllabus.course_code,
+        recurrence: 'weekly',
+        endDate: cm.end_date,
+        days: cm.days,
       });
     });
   }

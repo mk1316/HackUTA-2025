@@ -89,23 +89,35 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
        - Ensure year is reasonable (2024-2026)
        - NEVER output "Invalid Date" - if unsure, use the closest valid date
     
-    5. FIND THESE ITEMS:
-       - ✅ ALL homework/assignments (HW1, HW2, Assignment 1, etc.)
-       - ✅ ALL exams (Midterm, Final, Quiz 1, Test, Review)
-       - ✅ ALL projects (Team Project, Individual Report, Presentation)
-       - ✅ Sprint plans, sprint reviews, retrospectives
-       - ✅ Surveys, evaluations, peer reviews
-       - ✅ Lab work, practicals, workshops
-       - ✅ Discussion posts, forums, reflections
-       - ✅ Office hours (recurring weekly schedule with day, time, location)
-       - ✅ Class meeting times (e.g., "MW 2:00-3:15 PM", "TTh 10:00-11:30 AM")
+    5. FIND SEMESTER DATES FIRST:
+       - Look for "First day of class", "Last day of class", "Semester begins", "Semester ends"
+       - Look for the earliest and latest dates mentioned in the syllabus
+       - Check the course calendar/schedule section for the full date range
+       - If not explicitly stated, infer from the first and last assignment dates
     
-    6. EXTRACT FULL TITLES:
+    6. FIND THESE ITEMS WITH TIMES:
+       - ✅ ALL homework/assignments (HW1, HW2, Assignment 1, etc.)
+         * Extract due TIME if specified (e.g., "Due by 11:59 PM", "Due at 5:00 PM")
+         * Common patterns: "11:59 PM", "11:59PM", "by 5pm", "at midnight"
+       - ✅ ALL exams (Midterm, Final, Quiz 1, Test, Review)
+         * Extract exam TIME if specified (e.g., "2:00 PM - 4:00 PM")
+       - ✅ ALL projects (Team Project, Individual Report, Presentation)
+         * Extract due TIME if specified
+       - ✅ Sprint plans, sprint reviews, retrospectives (with times)
+       - ✅ Surveys, evaluations, peer reviews (with times)
+       - ✅ Lab work, practicals, workshops (with times)
+       - ✅ Discussion posts, forums, reflections (with times)
+       - ✅ Office hours (MUST include day, start time, end time, location)
+         * Example: "Tuesday 2:00 PM - 3:30 PM in ERB 129"
+       - ✅ Class meeting times (MUST include days, start time, end time, location)
+         * Example: "MW 2:00 PM - 3:15 PM in ERB 129"
+    
+    7. EXTRACT FULL TITLES:
        - Use complete names: "Team Formation and Project Preferences" not "Team"
        - Include numbers: "Sprint 4 Individual Report" not "Individual Report"
        - Keep descriptive details: "Self-intro and Project Preferences"
     
-    7. COMMON PATTERNS TO LOOK FOR:
+    8. COMMON PATTERNS TO LOOK FOR:
        - "Due:" or "Due by:" or "Due on:"
        - Dates next to assignment names in tables
        - Calendar grids with dates and assignments
@@ -117,6 +129,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     - "9/11" with year 2025 → "2025-09-11"
     - "September 11" with year 2025 → "2025-09-11"
     - "Week 1 (Aug 23)" with year 2025 → "2025-08-23"
+    
+    📅 EXAMPLE FOR RECURRING EVENTS:
+    If syllabus shows:
+    - First class: August 23, 2025
+    - Last class/final: December 12, 2025
+    - Class meets: Monday, Wednesday, Friday
+    
+    Then class_meetings should be:
+    {
+        "days": ["Monday", "Wednesday", "Friday"],
+        "time": "2:00 PM - 3:15 PM",
+        "location": "ERB 129",
+        "recurrence": "weekly",
+        "start_date": "2025-08-23",
+        "end_date": "2025-12-12"
+    }
+    
+    🔁 CRITICAL FOR RECURRING EVENTS:
+    - Office hours and class meetings MUST have DIFFERENT start_date and end_date
+    - start_date = first day of semester (earliest date in syllabus)
+    - end_date = last day of semester (latest date in syllabus, or last assignment due date)
+    - NEVER use the same date for both start_date and end_date
+    - If you can't find explicit semester dates, use the earliest and latest assignment dates
     
     ⚠️ QUALITY CHECKS BEFORE RETURNING:
     - Did you check EVERY section of the syllabus?
@@ -139,6 +174,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             {
                 "title": "Complete Assignment Title",
                 "due_date": "YYYY-MM-DD",
+                "due_time": "HH:MM AM/PM (e.g., '11:59 PM', '5:00 PM') - leave empty if not specified",
                 "description": "Assignment description"
             }
         ],
@@ -146,6 +182,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             {
                 "type": "Midterm/Final/Quiz",
                 "date": "YYYY-MM-DD",
+                "time": "HH:MM AM/PM - HH:MM AM/PM (e.g., '2:00 PM - 4:00 PM') - leave empty if not specified",
                 "description": "Exam details"
             }
         ],
@@ -153,6 +190,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             {
                 "title": "Complete Project Title",
                 "due_date": "YYYY-MM-DD",
+                "due_time": "HH:MM AM/PM (e.g., '11:59 PM', '5:00 PM') - leave empty if not specified",
                 "description": "Project description"
             }
         ],
@@ -162,8 +200,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 "time": "HH:MM AM/PM - HH:MM AM/PM",
                 "location": "Office location or Zoom link",
                 "recurrence": "weekly",
-                "start_date": "YYYY-MM-DD (first occurrence in semester)",
-                "end_date": "YYYY-MM-DD (last occurrence in semester)"
+                "start_date": "YYYY-MM-DD (MUST be the actual first day of semester - look for earliest date in syllabus)",
+                "end_date": "YYYY-MM-DD (MUST be the actual last day of semester - look for latest date in syllabus or final exam date)"
             }
         ],
         "class_meetings": [
@@ -172,10 +210,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 "time": "HH:MM AM/PM - HH:MM AM/PM",
                 "location": "Classroom location",
                 "recurrence": "weekly",
-                "start_date": "YYYY-MM-DD (first day of semester)",
-                "end_date": "YYYY-MM-DD (last day of semester)"
+                "start_date": "YYYY-MM-DD (MUST be the actual first day of semester - look for earliest date in syllabus)",
+                "end_date": "YYYY-MM-DD (MUST be the actual last day of semester - look for latest date in syllabus or final exam date)"
             }
-        ]
+        ],
+        "semester_info": {
+            "start_date": "YYYY-MM-DD (first day of classes)",
+            "end_date": "YYYY-MM-DD (last day of classes or final exam)"
+        }
     }
     `;
 
