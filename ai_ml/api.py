@@ -13,7 +13,7 @@ from typing import Dict
 from dotenv import load_dotenv
 
 # Import our extraction functions
-from text_extraction import extract_text_from_pdf, extract_syllabus_info
+from main import extract_text, extract_optimized_syllabus_info
 
 # Load environment variables
 load_dotenv()
@@ -86,100 +86,24 @@ async def extract_syllabus(file: UploadFile = File(...)) -> Dict:
             temp_file.write(content)
             temp_path = temp_file.name
         
-        # Process PDF directly with Gemini's document understanding
+        # Extract text from PDF
         try:
-            from google import genai
-            from google.genai import types
-            import pathlib
-            import json
-            import re
-            from loguru import logger
+            extracted_text = extract_text(temp_path)
             
-            client = genai.Client(api_key=api_key)
+            if not extracted_text or len(extracted_text.strip()) < 50:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Could not extract sufficient text from PDF. The file may be empty or corrupted."
+                )
             
-            # Read PDF file
-            pdf_path = pathlib.Path(temp_path)
-            pdf_data = pdf_path.read_bytes()
-            
-            # Create the prompt for Gemini
-            prompt = """
-            Extract ALL assignments, exams, projects, and important dates from this syllabus PDF.
-            
-            FOCUS ON THE "ASSIGNMENTS" COLUMN - look for phrases like "Due by", "Assigned", and specific due dates.
-            
-            CRITICAL INSTRUCTIONS:
-            1. Find EVERY assignment, homework, quiz with due dates (look for: "Team:", "Individual:", "HW:", "Assignment", "Assigned", "Due by",)
-            2. Find ALL exams (Midterm, Finals, Reviews, etc.) and their dates
-            3. Find ALL projects, presentations, reports, and their due dates
-            4. Extract team member evaluations, sprint plans, sprint reviews, and any other graded work
-            5. Include the full title/description for each item
-            6. Convert all dates to YYYY-MM-DD format (assume year 2025 if not specified)
-            7. If a date range is given (e.g., "8/18-8/22"), use the END date as the due date
-            8. Pay special attention to items with time stamps like "11:59PM" - these are important deadlines
-            
-            Return ONLY valid JSON in this exact format (no markdown, no extra text):
-            {
-                "course_name": "Full Course Name",
-                "course_code": "Course Code",
-                "professor": {
-                    "name": "Professor Name",
-                    "email": "email@domain.com",
-                    "office_hours": "Office hours description"
-                },
-                "class_schedule": "Class meeting schedule",
-                "homework": [
-                    {
-                        "title": "Assignment Title",
-                        "due_date": "YYYY-MM-DD",
-                        "description": "Assignment description"
-                    }
-                ],
-                "exams": [
-                    {
-                        "type": "Midterm/Final/Quiz",
-                        "date": "YYYY-MM-DD",
-                        "description": "Exam details"
-                    }
-                ],
-                "projects": [
-                    {
-                        "title": "Project Title",
-                        "due_date": "YYYY-MM-DD",
-                        "description": "Project description"
-                    }
-                ]
-            }
-            """
-            
-            # Process PDF with Gemini's document understanding
-            logger.info(f"Processing PDF with Gemini document understanding: {file.filename}")
-            response = client.models.generate_content(
-                model="gemini-2.0-flash-exp",
-                contents=[
-                    types.Part.from_bytes(
-                        data=pdf_data,
-                        mime_type='application/pdf',
-                    ),
-                    prompt
-                ]
-            )
-            
-            logger.info(f"Gemini response received (first 500 chars): {response.text[:500]}")
-            
-            # Parse the response
-            response_text = response.text.strip()
-            if response_text.startswith('```'):
-                # Remove markdown code blocks if present
-                response_text = re.sub(r'^```(?:json)?\s*', '', response_text)
-                response_text = re.sub(r'\s*```$', '', response_text)
-            
-            analysis_result = json.loads(response_text)
-            logger.info("Successfully parsed Gemini response")
+            # Analyze with Gemini
+            analysis_result = extract_optimized_syllabus_info(extracted_text, api_key)
             
             # Add metadata
             analysis_result['metadata'] = {
                 'filename': file.filename,
-                'extraction_method': 'gemini-document-understanding'
+                'text_length': len(extracted_text),
+                'extraction_method': 'pdfplumber + gemini'
             }
             
             return analysis_result
@@ -219,7 +143,7 @@ async def extract_text_only(file: UploadFile = File(...)) -> Dict:
             temp_path = temp_file.name
         
         try:
-            extracted_text = extract_text_from_pdf(temp_path)
+            extracted_text = extract_text(temp_path)
             
             return {
                 'filename': file.filename,
