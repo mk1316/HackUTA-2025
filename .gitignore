@@ -1,3 +1,61 @@
+# Node/Next.js
+node_modules/
+.next/
+.turbo/
+out/
+/.swc/
+
+# Builds
+/build
+/dist
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Coverage
+coverage/
+*.lcov
+.nyc_output
+
+# Caches
+.eslintcache
+.npm
+.cache
+
+# Vercel local project data
+.vercel/
+
+# Package manager lockfiles (use npm: keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+
+# Editors/OS junk
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Direnv
+.envrc
+.direnv/
 # Dependencies
 node_modules/
 **/node_modules/
@@ -32,6 +90,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 lerna-debug.log*
+*.log
 
 # Runtime data
 pids
@@ -74,6 +133,7 @@ jspm_packages/
 # Next.js build output
 .next
 out
+/.swc/
 
 # Nuxt.js build / generate output
 .nuxt
@@ -93,6 +153,8 @@ temp/
 *.swp
 *.swo
 *~
+.envrc
+.direnv/
 
 # OS generated files
 .DS_Store
