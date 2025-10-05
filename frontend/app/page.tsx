@@ -5,6 +5,7 @@ import FileUpload from './components/FileUpload';
 import PDFViewer from './components/PDFViewer';
 import ParsedEventsModal from './components/ParsedEventsModal';
 import AnimatedBackground from './components/AnimatedBackground';
+import ThemeToggle from './components/ThemeToggle';
 import { generateMockParsedData } from './utils/mockData';
 import { ParsedSyllabus, ParsedEvent } from './types/syllabus';
 import { Calendar, FileText, Clock, CheckCircle, Sparkles, Zap, Target, ArrowRight } from 'lucide-react';
@@ -84,6 +85,9 @@ export default function Home() {
       {/* Animated Background */}
       <AnimatedBackground />
       
+      {/* Theme Toggle Button */}
+      <ThemeToggle />
+      
       {/* Header */}
       <header className="relative z-10 glassmorphism border-b border-white border-opacity-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -101,10 +105,6 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-white text-opacity-80 glassmorphism px-4 py-2 rounded-full">
-              <CheckCircle className="h-4 w-4" />
-              <span>HackUTA 2025</span>
-            </div>
           </div>
         </div>
       </header>
@@ -115,11 +115,6 @@ export default function Home() {
           {/* Upload Section */}
           <div className="mb-12">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center space-x-2 mb-6">
-                <Zap className="h-6 w-6 text-yellow-400 animate-pulse" />
-                <span className="text-yellow-400 font-semibold text-sm uppercase tracking-wider">AI-Powered</span>
-                <Zap className="h-6 w-6 text-yellow-400 animate-pulse" />
-              </div>
               <h2 className="text-5xl font-bold text-white mb-6">
                 Upload Your <span className="gradient-text">Syllabus</span>
               </h2>
