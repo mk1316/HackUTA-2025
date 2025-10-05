@@ -1,11 +1,6 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import FileUpload from '../components/FileUpload';
-import FileInfo from '../components/FileInfo';
-import ProcessButton from '../components/ProcessButton';
-import ErrorDisplay from '../components/ErrorDisplay';
-import SyllabusResults from '../components/SyllabusResults';
 
 /**
  * Main component for PDF upload and AI processing
@@ -20,9 +15,25 @@ type SyllabusData = {
     office_hours?: string;
   };
   class_schedule?: string;
-  homework?: Array<{ title: string; due_date: string; description?: string }>;
-  exams?: Array<{ type: string; date: string; description?: string }>;
-  projects?: Array<{ title: string; due_date: string; description?: string }>;
+  homework?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  exams?: Array<{ type: string; date: string; time?: string; description?: string }>;
+  projects?: Array<{ title: string; due_date: string; due_time?: string; description?: string }>;
+  office_hours?: Array<{
+    day: string;
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
+  class_meetings?: Array<{
+    days: string[];
+    time: string;
+    location?: string;
+    recurrence?: string;
+    start_date: string;
+    end_date: string;
+  }>;
 };
 
 export default function UploadPage() {
@@ -32,6 +43,9 @@ export default function UploadPage() {
   const [result, setResult] = useState<SyllabusData | null>(null);
   const [error, setError] = useState<string>('');
   const [syllabusId, setSyllabusId] = useState<string>('');
+  
+  // State for multiple syllabi - accumulate all processed courses
+  const [allSyllabi, setAllSyllabi] = useState<SyllabusData[]>([]);
   
   // State for humorous summary
   const [humorousSummary, setHumorousSummary] = useState<string>('');
@@ -95,23 +109,39 @@ export default function UploadPage() {
     setResult(null);
 
     try {
-      const backend = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
       const formData = new FormData();
       formData.append('file', file);
-      const token = typeof window !== 'undefined' ? (localStorage.getItem('access_token') || '') : '';
-      const resp = await fetch(`${backend}/upload/`, {
+      
+      const resp = await fetch('/api/process-pdf', {
         method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         body: formData
       });
+      
       if (!resp.ok) {
-        const t = await resp.text();
-        throw new Error(t || 'Failed to process file');
+        const errorText = await resp.text();
+        throw new Error(errorText || 'Failed to process file');
       }
-      const payload = await resp.json();
-      const parsed = payload?.data || {};
-      setSyllabusId(parsed?._id || '');
-      setResult((parsed?.parsed_data as SyllabusData) || null);
+      
+      const data = await resp.json();
+      const newSyllabus = data.result as SyllabusData;
+      setSyllabusId(data.id || '');
+      setResult(newSyllabus);
+      
+      // Add to accumulated syllabi (avoid duplicates by checking course code)
+      if (newSyllabus) {
+        setAllSyllabi(prev => {
+          const existingIndex = prev.findIndex(s => s.course_code === newSyllabus.course_code);
+          if (existingIndex >= 0) {
+            // Replace existing syllabus with same course code
+            const updated = [...prev];
+            updated[existingIndex] = newSyllabus;
+            return updated;
+          } else {
+            // Add new syllabus
+            return [...prev, newSyllabus];
+          }
+        });
+      }
     } catch (err) {
       // Handle errors gracefully with user-friendly messages
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -167,13 +197,19 @@ export default function UploadPage() {
           body: JSON.stringify({ text: data.result }),
         });
         if (!audioResponse.ok) {
-          throw new Error('Failed to generate audio');
+          console.error('Audio generation failed - this feature requires Python dependencies');
+          // Don't throw error, just log it - audio is optional
+          setError('Audio generation unavailable (requires Python setup)');
+          setTimeout(() => setError(''), 3000); // Clear error after 3 seconds
+        } else {
+          const audioBlob = await audioResponse.blob();
+          const url = URL.createObjectURL(audioBlob);
+          setAudioUrl(url);
         }
-        const audioBlob = await audioResponse.blob();
-        const url = URL.createObjectURL(audioBlob);
-        setAudioUrl(url);
       } catch (e) {
         console.error('Audio generation failed', e);
+        setError('Audio generation unavailable');
+        setTimeout(() => setError(''), 3000);
       } finally {
         setIsGeneratingAudio(false);
       }
@@ -231,13 +267,16 @@ export default function UploadPage() {
 
         {/* Right column: action buttons */}
         <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',gap:'18px',marginLeft:'24px',position:'relative',zIndex:1}}>
-          <button onClick={()=>setShowCalendar(v=>!v)} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:'pointer'}}>
+          <button onClick={handleProcessFile} disabled={!file || isProcessing} className="hb-btn" style={{flex:1,background:'#3b82f6',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isProcessing)?'not-allowed':'pointer',opacity:(!file||isProcessing)?0.7:1}}>
+            {isProcessing ? 'Processing…' : 'Extract Syllabus'}
+          </button>
+          <button onClick={()=>setShowCalendar(v=>!v)} disabled={!result} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:result? 'pointer':'not-allowed',opacity:result?1:0.7}}>
             {showCalendar ? 'Hide Calendar' : 'Calendar'}
           </button>
           <button onClick={handleGenerateHumorousSummary} disabled={!file || isGeneratingHumorous} className="hb-btn" style={{flex:1,background:'#a855f7',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isGeneratingHumorous)?'not-allowed':'pointer',opacity:(!file||isGeneratingHumorous)?0.7:1}}>
             {isGeneratingHumorous ? 'Summarizing…' : 'Summarize Audio'}
           </button>
-          <button onClick={()=>setShowTodo(v=>!v)} className="hb-btn" style={{flex:1,background:'#ef4444',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:'pointer'}}>
+          <button onClick={()=>setShowTodo(v=>!v)} disabled={!result} className="hb-btn" style={{flex:1,background:'#ef4444',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:result?'pointer':'not-allowed',opacity:result?1:0.7}}>
             {showTodo ? 'Hide To-Do' : 'To-Do'}
           </button>
         </div>
@@ -246,6 +285,19 @@ export default function UploadPage() {
         <div style={{position:'absolute',left:24,right:24,bottom:24,display:'flex',flexDirection:'column',gap:8}}>
           {!!error && (
             <div style={{padding:'10px 12px',background:'#ef4444',color:'#fff',border:'3px solid #000',borderRadius:'10px',boxShadow:'3px 3px 0 #000'}}>{error}</div>
+          )}
+          {isProcessing && (
+            <div style={{background:'#3b82f6',color:'#fff',borderRadius:8,boxShadow:'3px 3px 0 #000',padding:'8px 12px',display:'inline-flex',alignItems:'center',gap:8,fontWeight:600}}>
+              ⚙️ Processing syllabus...
+            </div>
+          )}
+          {result && !isProcessing && (
+            <div style={{background:'#22c55e',color:'#fff',borderRadius:8,boxShadow:'3px 3px 0 #000',padding:'8px 12px',display:'inline-flex',alignItems:'center',gap:8,fontWeight:600}}>
+              ✅ Syllabus processed! Found {(result.homework?.length || 0) + (result.exams?.length || 0) + (result.projects?.length || 0)} assignments, {result.office_hours?.length || 0} office hours, {result.class_meetings?.length || 0} class meetings
+              {allSyllabi.length > 1 && (
+                <span style={{marginLeft:8,opacity:0.9}}>• Total courses: {allSyllabi.length}</span>
+              )}
+            </div>
           )}
           {isGeneratingAudio && (
             <div style={{background:'#111',color:'#fff',borderRadius:8,boxShadow:'3px 3px 0 #000',padding:'8px 12px',display:'inline-flex',alignItems:'center',gap:8}}>Preparing audio summary…</div>
@@ -264,36 +316,49 @@ export default function UploadPage() {
               <button onClick={()=>setShowTodo(false)} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Close</button>
             </div>
             {(() => {
-              const items: Array<{ title: string; due: string }> = [];
               const format = (d?: string) => {
                 if (!d) return '';
                 try { return new Date(d).toLocaleString(undefined, { year:'numeric', month:'short', day:'numeric' }); } catch { return d; }
               };
-              if (result?.homework?.length) {
-                result.homework.forEach(h => items.push({ title: h.title || 'Assignment', due: format(h.due_date) }));
-              }
-              if (result?.projects?.length) {
-                result.projects.forEach(p => items.push({ title: p.title || 'Project', due: format(p.due_date) }));
-              }
-              if (result?.exams?.length) {
-                result.exams.forEach(e => items.push({ title: e.type || 'Exam', due: format(e.date) }));
-              }
-              if (items.length === 0) {
+              
+              // Get all assignments from all syllabi
+              const allItems: Array<{ title: string; due: string; course: string }> = [];
+              
+              allSyllabi.forEach(syllabus => {
+                const courseName = syllabus.course_name || syllabus.course_code || 'Unknown Course';
+                if (syllabus.homework?.length) {
+                  syllabus.homework.forEach(h => allItems.push({ title: h.title || 'Assignment', due: format(h.due_date), course: courseName }));
+                }
+                if (syllabus.projects?.length) {
+                  syllabus.projects.forEach(p => allItems.push({ title: p.title || 'Project', due: format(p.due_date), course: courseName }));
+                }
+                if (syllabus.exams?.length) {
+                  syllabus.exams.forEach(e => allItems.push({ title: e.type || 'Exam', due: format(e.date), course: courseName }));
+                }
+              });
+              
+              if (allItems.length === 0) {
                 return (
-                  <div style={{border:'3px solid #000',borderRadius:'12px',padding:'16px',boxShadow:'4px 4px 0 #000',background:'#fff',fontSize:'18px',color:'#000',fontWeight:700}}>
+                  <div style={{border:'3px solid #000',borderRadius:'12px',padding:'16px',boxShadow:'4px 4px 0 #000',background:'#fff',fontSize:'18px',color:'#000'}}>
                     You are Up to Date with your College Assignments
                   </div>
                 );
               }
+              
+              // Sort by due date
+              allItems.sort((a, b) => new Date(a.due).getTime() - new Date(b.due).getTime());
+              
               return (
-                <div style={{border:'3px solid #000',borderRadius:'16px',overflow:'hidden',background:'#fff',boxShadow:'4px 4px 0 #000',color:'#000'}}>
-                  <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',background:'#f8fafc'}}>
-                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',borderRight:'3px solid #000',fontWeight:900,color:'#000'}}>Assignment</div>
-                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',fontWeight:900,color:'#000'}}>Due date</div>
+                <div style={{border:'3px solid #000',borderRadius:'16px',overflow:'hidden',background:'#fff',boxShadow:'4px 4px 0 #000'}}>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 0.8fr 0.8fr'}}>
+                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',borderRight:'3px solid #000',fontWeight:800,color:'#000'}}>Assignment</div>
+                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',borderRight:'3px solid #000',fontWeight:800,color:'#000'}}>Course</div>
+                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',fontWeight:800,color:'#000'}}>Due date</div>
                   </div>
-                  {items.map((it, idx) => (
-                    <div key={idx} style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',borderTop: idx===0? '': '3px solid #000'}}>
+                  {allItems.map((it, idx) => (
+                    <div key={idx} style={{display:'grid',gridTemplateColumns:'1fr 0.8fr 0.8fr',borderTop: idx===0? '': '3px solid #000'}}>
                       <div style={{padding:'12px 14px',borderRight:'3px solid #000',color:'#000'}}>{it.title}</div>
+                      <div style={{padding:'12px 14px',borderRight:'3px solid #000',color:'#000',fontSize:'14px'}}>{it.course}</div>
                       <div style={{padding:'12px 14px',color:'#000'}}>{it.due || '—'}</div>
                     </div>
                   ))}
