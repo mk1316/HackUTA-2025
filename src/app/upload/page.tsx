@@ -181,7 +181,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',background:'#fef3c7',position:'relative',overflow:'hidden'}}>
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:'32px',padding:'24px',background:'#fef3c7',position:'relative'}}>
       {/* Background shapes */}
       <div className="hb-shape hb-circle" style={{left:-60, top:-40}} />
       <div className="hb-shape hb-circle hb-2" />
@@ -226,15 +226,9 @@ export default function UploadPage() {
         </div>
 
         {/* Right column: action buttons */}
-<<<<<<< HEAD
-        <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',gap:'18px',marginLeft:'24px'}}>
-          <button onClick={handleProcessFile} disabled={!file || isProcessing} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isProcessing)?'not-allowed':'pointer',opacity:(!file||isProcessing)?0.7:1}}>
-            {isProcessing ? 'Processing…' : 'Sync to Calendar'}
-=======
         <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',gap:'18px',marginLeft:'24px',position:'relative',zIndex:1}}>
           <button onClick={()=>setShowCalendar(v=>!v)} disabled={!result} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:result? 'pointer':'not-allowed',opacity:result?1:0.7}}>
             {showCalendar ? 'Hide Calendar' : 'Calendar'}
->>>>>>> c2a2cc7 (To do list)
           </button>
           <button onClick={handleGenerateHumorousSummary} disabled={!file || isGeneratingHumorous} className="hb-btn" style={{flex:1,background:'#a855f7',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isGeneratingHumorous)?'not-allowed':'pointer',opacity:(!file||isGeneratingHumorous)?0.7:1}}>
             {isGeneratingHumorous ? 'Summarizing…' : 'Summarize Audio'}
@@ -381,8 +375,6 @@ export default function UploadPage() {
           </div>
         )}
       </div>
-<<<<<<< HEAD
-=======
       {/* About Us & Features whiteboard (restored) */}
       <div style={{background:'#fff',borderRadius:'24px',boxShadow:'6px 6px 0 #000, 0 18px 36px -12px rgba(0,0,0,0.2)',width:'100%',maxWidth:'1100px',padding:'28px',border:'3px solid #000',position:'relative'}}>
         <div style={{position:'absolute',top:16,left:20,color:'#000',fontWeight:800,fontSize:'30px'}}>About Us</div>
@@ -399,8 +391,7 @@ export default function UploadPage() {
         </div>
       </div>
 
-      {/* Removed external To-Do board; now appears inside the To-Do button panel */}
->>>>>>> c2a2cc7 (To do list)
+        {/* Removed external To-Do board; now appears inside the To-Do button panel */}
     </div>
   );
 }

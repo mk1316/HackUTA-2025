@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { spawn } from 'child_process';
 
 /**
  * API route for generating audio from text using ElevenLabs
@@ -9,72 +10,32 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const { text } = await request.json();
+    const body = await request.json();
+    const { text } = body || {};
 
-    // Validate text input
-    if (!text || typeof text !== 'string') {
-      return NextResponse.json(
-        { error: 'Text is required' }, 
-        { status: 400 }
-      );
+    // Spawn Python script to generate audio (working_voice_summary.py behavior)
+    const py = spawn('python3', ['ai_ml/main.py', '--mode', 'voice_summary', '--text', text || '']);
+
+    const chunks: Buffer[] = [];
+    let stderrBuf = '';
+    py.stdout.on('data', (d) => chunks.push(Buffer.from(d)));
+    py.stderr.on('data', (d) => { stderrBuf += d.toString(); });
+
+    const exitCode: number = await new Promise((resolve) => {
+      py.on('close', resolve);
+    });
+
+    if (exitCode !== 0) {
+      console.error('voice summary script failed:', stderrBuf);
+      return NextResponse.json({ error: 'Audio generation failed' }, { status: 500 });
     }
 
-    // Validate API key presence
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    if (!apiKey) {
-      console.error('ELEVENLABS_API_KEY environment variable is not set');
-      return NextResponse.json(
-        { error: 'Audio service configuration error' }, 
-        { status: 500 }
-      );
-    }
-
-    // ElevenLabs API configuration
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'; // Default voice
-    const modelId = 'eleven_monolingual_v1'; // Fast model for better performance
-    
-    // Prepare request to ElevenLabs
-    const elevenLabsResponse = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
-      {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': apiKey,
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: modelId,
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-            style: 0.0,
-            use_speaker_boost: true
-          }
-        }),
-      }
-    );
-
-    if (!elevenLabsResponse.ok) {
-      const errorData = await elevenLabsResponse.text();
-      console.error('ElevenLabs API error:', errorData);
-      return NextResponse.json(
-        { error: 'Failed to generate audio' }, 
-        { status: 500 }
-      );
-    }
-
-    // Get the audio data
-    const audioBuffer = await elevenLabsResponse.arrayBuffer();
-    
-    // Return the audio file
+    const audioBuffer = Buffer.concat(chunks);
     return new NextResponse(audioBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
         'Content-Length': audioBuffer.byteLength.toString(),
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
       },
     });
 
