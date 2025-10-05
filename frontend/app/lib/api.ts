@@ -17,9 +17,9 @@ export interface ApiResponse<T> {
 export async function uploadSyllabus(file: File): Promise<ApiResponse<any>> {
   try {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('files', file);
 
-    const response = await fetch(`${API_URL}/upload/`, {
+    const response = await fetch(`${API_URL}/parse`, {
       method: 'POST',
       body: formData,
       // Add auth header if you have a token
@@ -35,8 +35,8 @@ export async function uploadSyllabus(file: File): Promise<ApiResponse<any>> {
 
     const data = await response.json();
     return {
-      success: true,
-      data: data
+      success: data.success || true,
+      data: data.data || data
     };
   } catch (error) {
     console.error('Upload error:', error);
