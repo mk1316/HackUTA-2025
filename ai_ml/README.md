@@ -8,6 +8,7 @@ A comprehensive AI-powered syllabus parsing system with intelligent study schedu
 - **AI-Powered Analysis**: Gemini AI for deep syllabus understanding
 - **Intelligent Optimization**: Chapter reordering and study time estimation
 - **Study Scheduling**: Combined daily/weekly schedules from multiple courses
+- **Voice Summaries**: Humorous audio summaries with ElevenLabs voice synthesis
 - **RESTful API**: FastAPI endpoints for easy frontend integration
 - **CORS Support**: Ready for frontend integration
 
@@ -15,41 +16,73 @@ A comprehensive AI-powered syllabus parsing system with intelligent study schedu
 
 ```
 HACKUTA/NLP/ai_ml/
-├── main.py                 # FastAPI application with endpoints
-├── text_extraction.py      # PDF processing and text extraction
-├── study_estimator.py      # Study scheduling and time estimation
-├── gemini_teacher.py       # AI optimization and recommendations
-├── requirements.txt       # Python dependencies
-├── sample_syllabi/        # Test PDF files
-│   ├── sample1.pdf
-│   └── sample2.pdf
-└── helpers/               # (Empty - ready for future modules)
+├── main.py                      # FastAPI application with endpoints
+├── text_extraction.py           # PDF processing and text extraction
+├── study_estimator.py           # Study scheduling and time estimation
+├── gemini_teacher.py            # AI optimization and recommendations
+├── working_voice_summary.py     # Voice summary generation with ElevenLabs
+├── manual_mp3_generator.py      # Alternative MP3 generation script
+├── api.py                       # Additional API endpoints
+├── requirements.txt             # Python dependencies
+├── .env                        # API keys (create this file)
+├── venv/                       # Virtual environment (created during setup)
+├── output/                     # Generated files
+│   ├── macdonald_summary.txt    # Text summary output
+│   └── macdonald_summary.mp3    # Audio summary output
+└── sample_syllabi/             # Test PDF files
+    ├── sample1.pdf
+    └── sample2.pdf
 ```
 
 ## 🛠 Installation
 
-### 1. Install Python Dependencies
+### 1. Create Virtual Environment
 ```bash
 cd ai_ml
+python3.12 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+### 2. Install Python Dependencies
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### 2. Install System Dependencies
+### 3. Install System Dependencies
 - **macOS**: `brew install tesseract`
-- **Ubuntu/Debian**: `sudo apt-get install tesseract-ocr`
+- **Ubuntu/Debian**: `sudo apt-get install tesseract-ocr python3-venv`
 - **Windows**: Download from [GitHub releases](https://github.com/UB-Mannheim/tesseract/wiki)
 
-### 3. Set Up API Key (Optional)
+### 4. Set Up API Keys
+Create a `.env` file in the `ai_ml` directory:
 ```bash
-export GEMINI_API_KEY='your-api-key-here'
+echo "GEMINI_API_KEY=your-gemini-api-key-here" > .env
+echo "ELEVENLABS_API_KEY=your-elevenlabs-api-key-here" >> .env
 ```
-Get your API key from: https://makersuite.google.com/app/apikey
+
+Get your API keys from:
+- **Gemini**: https://makersuite.google.com/app/apikey
+- **ElevenLabs**: https://elevenlabs.io/app/settings/api-keys
 
 ## 🚀 Usage
+
+### Voice Summary Generation
+Generate humorous voice summaries of course syllabi:
+```bash
+cd ai_ml
+source venv/bin/activate  # Activate virtual environment
+python working_voice_summary.py
+```
+
+This will create:
+- `output/macdonald_summary.txt` - Text version of the humorous summary
+- `output/macdonald_summary.mp3` - Audio version with voice synthesis
 
 ### Start the API Server
 ```bash
 cd ai_ml
+source venv/bin/activate  # Activate virtual environment
 python main.py
 ```
 The API will be available at `http://localhost:8000`
@@ -127,11 +160,38 @@ When `optimize=true`:
 - **Manual Scheduling**: Simple time distribution
 - **No AI Processing**: Faster, no API key required
 
+## 🔧 Troubleshooting
+
+### ElevenLabs Import Issues
+If you encounter import errors with ElevenLabs, the project uses a compatible version:
+```bash
+pip uninstall elevenlabs -y
+pip install elevenlabs==0.2.26
+```
+
+### Virtual Environment Issues
+If `python3.12 -m venv` fails, install the required package:
+```bash
+# Ubuntu/Debian
+sudo apt install python3.12-venv
+
+# macOS (if using Homebrew)
+brew install python@3.12
+```
+
+### API Key Issues
+Ensure your `.env` file is in the `ai_ml` directory and contains:
+```
+GEMINI_API_KEY=your_actual_key_here
+ELEVENLABS_API_KEY=your_actual_key_here
+```
+
 ## 🚀 Ready for Hackathon Demo
 
 The project is now clean, organized, and fully functional with:
 - **FastAPI endpoints** (`/parse`, `/estimate`)
 - **AI-powered optimization** (Gemini integration)
 - **Study scheduling** (multiple course support)
+- **Voice summaries** (ElevenLabs integration)
 - **Frontend-ready JSON** (CORS enabled)
 - **Demo PDFs** (sample1.pdf, sample2.pdf)
