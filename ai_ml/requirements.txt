@@ -71,6 +71,9 @@ Pillow
 # Google Generative AI (alternative to google-genai)
 google-generativeai
 
+# FastAPI file upload support
+python-multipart
+
 # =============================================================================
 # SHARED DEPENDENCIES
 # =============================================================================
