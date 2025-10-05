@@ -57,10 +57,12 @@ export default function Home() {
       }
       
       // Transform backend response to frontend format
-      const backendData = result.data;
+      // The backend wraps the AI response in a data object, so we need result.data.data
+      const backendData = result.data.data || result.data;
       
       // Debug: Log what we received from backend
       console.log('📊 Backend data:', backendData);
+      console.log('📊 Full result:', result);
       console.log('📝 Homework:', backendData.homework);
       console.log('📊 Exams:', backendData.exams);
       console.log('🔬 Projects:', backendData.projects);
@@ -126,6 +128,10 @@ export default function Home() {
           status: 'pending' as const
         }))
       };
+      
+      console.log('🎯 Transformed data:', transformedData);
+      console.log('🎯 Number of events:', transformedData.events.length);
+      console.log('🎯 Events:', transformedData.events);
       
       setParsedData(transformedData);
       setShowParsedModal(true);
