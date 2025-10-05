@@ -1,42 +1,140 @@
-# Python
+# =============================================================================
+# ENVIRONMENT & SECRETS
+# =============================================================================
+.env
+.env.*
+.env.local
+.env.development
+.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-.Python
+*$py.class
 *.so
 
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
 # Virtual environments
-venv/
 .venv/
+venv/
 env/
+ENV/
+env.bak/
+venv.bak/
+.uv/
 
-# Environment variables
-.env
-.env.local
+# Python version files
+.python-version
 
+# =============================================================================
+# NODE.JS & FRONTEND
+# =============================================================================
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Next.js
+.next/
+.next/cache/
+out/
+build/
+dist/
+.vercel/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
 # IDE
-.idea/
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# OS
-.DS_Store
-Thumbs.db
+# Testing & Coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
 
 # Logs
 *.log
+pip-log.txt
+pip-delete-this-directory.txt
 
-# UV package manager
-.uv/
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 
+# Windows
+ehthumbs.db
+Thumbs.db
+
+# =============================================================================
+# PROJECT SPECIFIC
+# =============================================================================
 # Temporary files
 temp/
 tmp/
 
-# Node.js
-node_modules/
+# PDF files (except sample syllabi)
+*.pdf
+!sample_syllabi/*.pdf
 
-# Runtime/generated files (NLP specific)
+# Generated analysis files
 analysis_result.json
 deep_analysis_result.json
 optimized_analysis_result.json
+test_*.py
+
+# AI/ML generated content
+ai_ml/output/
+*.mp3
+*.wav
+*.m4a
