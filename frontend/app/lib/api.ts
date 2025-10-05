@@ -249,3 +249,40 @@ export async function updateUserPreferences(
     };
   }
 }
+
+/**
+ * Generate voice summary for a syllabus PDF
+ */
+export async function generateVoiceSummary(file: File): Promise<ApiResponse<{
+  summary_text: string;
+  audio_base64: string;
+  audio_filename: string;
+}>> {
+  try {
+    const AI_ML_URL = process.env.NEXT_PUBLIC_AI_ML_URL || 'http://localhost:5050';
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${AI_ML_URL}/voice-summary`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: 'Voice summary generation failed' }));
+      throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return {
+      success: true,
+      data: data
+    };
+  } catch (error) {
+    console.error('Voice summary error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to generate voice summary'
+    };
+  }
+}

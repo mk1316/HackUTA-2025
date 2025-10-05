@@ -108,17 +108,12 @@ def generate_mp3_with_elevenlabs(summary: str) -> str:
         return None
     
     try:
-        # Import ElevenLabs with error handling
-        try:
-            from elevenlabs import generate, save, set_api_key
-        except ImportError:
-            print("❌ ElevenLabs not installed. Installing...")
-            os.system("pip install elevenlabs")
-            from elevenlabs import generate, save, set_api_key
+        # Import ElevenLabs (new API v2.x)
+        from elevenlabs.client import ElevenLabs
         
-        # Set the API key for ElevenLabs
-        set_api_key(api_key)
-        print(f"✅ ElevenLabs API key set: {api_key[:10]}...")
+        # Initialize client
+        client = ElevenLabs(api_key=api_key)
+        print(f"✅ ElevenLabs client initialized")
         
         # Ensure output directory exists
         output_dir = "output"
@@ -128,23 +123,28 @@ def generate_mp3_with_elevenlabs(summary: str) -> str:
         cleaned_summary = clean_for_elevenlabs(summary)
         print("🧹 Text cleaned for ElevenLabs audio generation")
         
-        # Generate audio
+        # Generate audio using the new API v2.x
         print("🎵 Generating audio with ElevenLabs...")
-        audio = generate(
+        # Using Rachel's actual voice ID from ElevenLabs
+        audio_generator = client.text_to_speech.convert(
+            voice_id="21m00Tcm4TlvDq8ikWAM",  # Rachel's voice ID
             text=cleaned_summary,
-            voice="l1HnyxS1XlopzjxxWRnm",  # Your custom voice ID
-            model="eleven_monolingual_v1"
+            model_id="eleven_monolingual_v1"
         )
         
-        # Save to file
+        # Save to file (audio_generator is an iterator of audio chunks)
         output_path = os.path.join(output_dir, "macdonald_summary.mp3")
-        save(audio, output_path)
+        with open(output_path, 'wb') as f:
+            for chunk in audio_generator:
+                f.write(chunk)
         
         print(f"✅ MP3 saved to: {output_path}")
         return output_path
         
     except Exception as e:
         print(f"❌ Error generating MP3: {e}")
+        import traceback
+        traceback.print_exc()
         print("❌ Voice generation failed - no output file created")
         return None
 
@@ -232,6 +232,74 @@ def load_sample_courses() -> List[Dict]:
             ]
         }
     ]
+
+def generate_humorous_summary_from_pdf(pdf_path: str) -> Dict:
+    """
+    Generate humorous voice summary from a PDF syllabus.
+    
+    Args:
+        pdf_path: Path to the PDF file
+        
+    Returns:
+        Dict with 'summary' text and 'audio_path'
+    """
+    from text_extraction import extract_text_from_pdf, extract_syllabus_info
+    import os
+    
+    print(f"📄 Processing PDF: {pdf_path}")
+    
+    try:
+        # Extract text from PDF
+        text = extract_text_from_pdf(pdf_path)
+        print(f"✅ Extracted {len(text)} characters from PDF")
+        
+        # Parse syllabus info
+        api_key = os.getenv('GEMINI_API_KEY')
+        syllabus_data = extract_syllabus_info(text, api_key, optimize=True)
+        print(f"✅ Parsed syllabus data")
+        
+        # Convert to course format
+        course = {
+            "course_name": syllabus_data.get('course_name', 'Unknown Course'),
+            "course_code": syllabus_data.get('course_code', ''),
+            "professor": syllabus_data.get('professor', {}),
+            "class_schedule": syllabus_data.get('class_schedule', ''),
+            "homework": syllabus_data.get('homework', []),
+            "exams": syllabus_data.get('exams', []),
+            "projects": syllabus_data.get('projects', [])
+        }
+        
+        courses = [course]
+        
+        # Generate humorous summary
+        print("🤖 Generating humorous summary...")
+        summary = generate_humorous_summary(courses)
+        print("✅ Humorous summary generated!")
+        
+        # Generate MP3
+        print("🎤 Generating voice summary...")
+        audio_path = generate_mp3_with_elevenlabs(summary)
+        
+        if audio_path:
+            print(f"✅ MP3 created: {audio_path}")
+            return {
+                'success': True,
+                'summary': summary,
+                'audio_path': audio_path
+            }
+        else:
+            print("❌ Failed to create MP3")
+            return {
+                'success': False,
+                'error': 'Failed to generate audio'
+            }
+            
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
 
 def main():
     """Main function to generate humorous voice summary."""
