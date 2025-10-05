@@ -8,6 +8,7 @@ import AnimatedBackground from './components/AnimatedBackground';
 import ThemeToggle from './components/ThemeToggle';
 import { generateMockParsedData } from './utils/mockData';
 import { ParsedSyllabus, ParsedEvent } from './types/syllabus';
+import { apiClient, convertBackendToFrontend } from './utils/api';
 import { Calendar, FileText, Clock, CheckCircle, Sparkles, Zap, Target, ArrowRight } from 'lucide-react';
 import { uploadSyllabus } from './lib/api';
 
@@ -21,17 +22,27 @@ export default function Home() {
   const [savedEvents, setSavedEvents] = useState<ParsedEvent[]>([]);
 
   const handleFileSelect = async (file: File) => {
+    console.log('📁 File selected:', {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: new Date(file.lastModified).toISOString()
+    });
+    
     setSelectedFile(file);
     setError(undefined);
     
     // Simulate processing
     setIsProcessing(true);
+    console.log('⏳ Starting file processing simulation...');
     setTimeout(() => {
       setIsProcessing(false);
+      console.log('✅ File processing simulation completed');
     }, 2000);
   };
 
   const handleFileRemove = () => {
+    console.log('🗑️ File removed:', selectedFile?.name);
     setSelectedFile(null);
     setShowPDFPreview(false);
     setError(undefined);
@@ -39,125 +50,101 @@ export default function Home() {
 
   const handlePreviewPDF = () => {
     if (selectedFile && selectedFile.type === 'application/pdf') {
+      console.log('👁️ Opening PDF preview for:', selectedFile.name);
       setShowPDFPreview(true);
+    } else {
+      console.log('⚠️ Cannot preview non-PDF file:', selectedFile?.type);
     }
   };
 
   const handleProcessSyllabus = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      console.log('❌ No file selected for processing');
+      return;
+    }
+    
+    console.log('🚀 Starting syllabus processing for:', {
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType: selectedFile.type
+    });
     
     setIsProcessing(true);
     setError(undefined);
     
     try {
-      // Call real API to upload and process syllabus
-      const result = await uploadSyllabus(selectedFile);
+      console.log('📤 Uploading file to backend API...');
       
-      if (!result.success || !result.data) {
-        throw new Error(result.error || 'Failed to process syllabus');
+      // Make real API call to backend
+      const response = await apiClient.uploadSyllabus(selectedFile);
+      
+      console.log('📥 Backend response received:', {
+        success: response.success,
+        hasData: !!response.data,
+        message: response.message,
+        error: response.error
+      });
+      
+      if (response.success && response.data) {
+        console.log('✅ API call successful, converting data...');
+        
+        // Convert backend response to frontend format
+        const parsedData = convertBackendToFrontend(response.data);
+        
+        console.log('📊 Converted parsed data:', {
+          courseName: parsedData.courseName,
+          totalEvents: parsedData.totalEvents,
+          events: parsedData.events.map(e => ({
+            title: e.title,
+            type: e.type,
+            dueDate: e.dueDate
+          }))
+        });
+        
+        setParsedData(parsedData);
+        setShowParsedModal(true);
+        console.log('🎉 Successfully processed syllabus and opened modal');
+      } else {
+        throw new Error(response.error || 'Failed to process syllabus');
       }
-      
-      // Transform backend response to frontend format
-      // The backend wraps the AI response in a data object, so we need result.data.data
-      const backendData = result.data.data || result.data;
-      
-      // Debug: Log what we received from backend
-      console.log('📊 Backend data:', backendData);
-      console.log('📊 Full result:', result);
-      console.log('📝 Homework:', backendData.homework);
-      console.log('📊 Exams:', backendData.exams);
-      console.log('🔬 Projects:', backendData.projects);
-      
-      // Store for debugging
-      (window as any).lastSyllabusData = backendData;
-      
-      // Show alert with counts
-      const hwCount = (backendData.homework || []).length;
-      const examCount = (backendData.exams || []).length;
-      const projectCount = (backendData.projects || []).length;
-      console.log(`Found: ${hwCount} homework, ${examCount} exams, ${projectCount} projects`);
-      
-      // Combine homework, exams, and projects into events array
-      const allEvents: any[] = [];
-      
-      // Add homework assignments
-      (backendData.homework || []).forEach((hw: any) => {
-        allEvents.push({
-          title: hw.title || 'Untitled Assignment',
-          type: 'assignment',
-          dueDate: hw.due_date || new Date().toISOString(),
-          description: hw.description || '',
-        });
-      });
-      
-      // Add exams
-      (backendData.exams || []).forEach((exam: any) => {
-        allEvents.push({
-          title: exam.type || 'Exam',
-          type: 'exam',
-          dueDate: exam.date || new Date().toISOString(),
-          description: exam.description || '',
-        });
-      });
-      
-      // Add projects
-      (backendData.projects || []).forEach((project: any) => {
-        allEvents.push({
-          title: project.title || 'Project',
-          type: 'project',
-          dueDate: project.due_date || new Date().toISOString(),
-          description: project.description || '',
-        });
-      });
-      
-      const transformedData: ParsedSyllabus = {
-        courseName: backendData.course_name || 'Unknown Course',
-        courseCode: backendData.course_code || '',
-        professor: backendData.professor?.name || '',
-        events: allEvents.map((event: any, index: number) => ({
-          id: `event-${index}`,
-          title: event.title,
-          type: event.type,
-          dueDate: event.dueDate,
-          dueTime: event.dueTime || '',
-          description: event.description,
-          points: event.points,
-          weight: event.weight,
-          priority: 'medium' as const,
-          courseCode: backendData.course_code || '',
-          location: '',
-          status: 'pending' as const
-        }))
-      };
-      
-      console.log('🎯 Transformed data:', transformedData);
-      console.log('🎯 Number of events:', transformedData.events.length);
-      console.log('🎯 Events:', transformedData.events);
-      
-      setParsedData(transformedData);
-      setShowParsedModal(true);
-      
-      console.log('Successfully processed syllabus:', selectedFile.name);
     } catch (err) {
-      console.error('Error processing syllabus:', err);
+      console.error('❌ Syllabus processing error:', err);
       setError(err instanceof Error ? err.message : 'Failed to process syllabus. Please try again.');
+      
+      // Fallback to mock data for demonstration
+      console.log('🔄 Falling back to mock data for demonstration');
+      const mockData = generateMockParsedData();
+      setParsedData(mockData);
+      setShowParsedModal(true);
+      console.log('📋 Mock data loaded and modal opened');
     } finally {
       setIsProcessing(false);
+      console.log('🏁 Syllabus processing completed');
     }
   };
 
   const handleSaveEvents = (events: ParsedEvent[]) => {
+    console.log('💾 Saving events:', {
+      totalEvents: events.length,
+      events: events.map(e => ({
+        id: e.id,
+        title: e.title,
+        type: e.type,
+        dueDate: e.dueDate
+      }))
+    });
     setSavedEvents(events);
-    console.log('Saved events:', events);
   };
 
   const handleContinueToCalendar = () => {
+    console.log('📅 Continuing to calendar view');
     setShowParsedModal(false);
     // Navigate to calendar page
     window.location.href = '/calendar';
   };
 
   const handleGoToKanban = () => {
+    console.log('📋 Navigating to kanban board');
     window.location.href = '/kanban';
   };
 
@@ -328,6 +315,7 @@ export default function Home() {
         parsedData={parsedData}
         onSave={handleSaveEvents}
         onContinue={handleContinueToCalendar}
+        syllabusFile={selectedFile}
       />
     </div>
   );

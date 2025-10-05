@@ -106,82 +106,20 @@ def extract_syllabus_info(text: str, api_key: Optional[str] = None, optimize: bo
         model = genai.GenerativeModel('gemini-2.5-flash')
         
         prompt = f"""
-        You are analyzing a course syllabus. Extract ALL assignments, exams, projects, and important dates from this text.
+        Extract structured information from this syllabus text:
         
-        The text may contain tables with columns like "Class Week", "Day", "Topic(s)", and "Assignments".
-        The "Assignments" column is CRUCIAL - it contains phrases like:
-        - "Assigned" followed by assignment names
-        - "Due by 11:59PM on MM/DD:" followed by items
-        - Assignment names with due dates in parentheses
+        {text[:4000]}  # Limit text for API
         
-        EXAMPLES of what to extract:
-        - "Due by 11:59PM on 08/24: Self-intro" → extract "Self-intro" with due date 2025-08-24
-        - "Due by 11:59PM on 09/12: Sprint Plan" → extract "Sprint Plan" with due date 2025-09-12
-        - "SRS Assigned" and "Due by 11:59PM on 09/19: CSE Advising Survey" → extract "CSE Advising Survey" with due date 2025-09-19
-        
-        Look through the ENTIRE text carefully and extract EVERY assignment, exam, and project you find.
-        
-        FULL SYLLABUS TEXT:
-        {text}
-        
-        CRITICAL INSTRUCTIONS:
-        1. Read through the ENTIRE text above - do not stop early
-        2. FOCUS ON THE "ASSIGNMENTS" COLUMN - look for phrases like "Due by", "Assigned", and specific due dates
-        3. Find EVERY assignment, homework, quiz with due dates (look for: "Team:", "Individual:", "HW:", "Assignment", "Assigned", "Due by")
-        4. Find ALL exams (Midterm, Final, etc.) and their dates
-        5. Find ALL projects, presentations, reports, and their due dates
-        6. Extract team member evaluations, sprint plans, sprint reviews, and any other graded work
-        7. Include the full title/description for each item (e.g., "Sprint Plan", "Project Charter", "Individual Report")
-        8. Convert all dates to YYYY-MM-DD format (assume year 2025 if not specified)
-        9. If a date range is given (e.g., "8/18-8/22"), use the END date as the due date
-        10. Pay special attention to items with time stamps like "11:59PM" - these are important deadlines
-        
-        Return ONLY valid JSON in this exact format (no markdown, no extra text):
+        Return JSON in this format:
         {{
-            "course_name": "Full Course Name",
-            "course_code": "Course Code",
-            "professor": {{
-                "name": "Professor Name",
-                "email": "email@domain.com",
-                "office_hours": "Office hours description"
-            }},
-            "class_schedule": "Class meeting schedule",
-            "chapters": [
-                {{"name": "Chapter/Topic Name", "suggested_order": 1, "weekly_hours": 2}}
-            ],
-            "homework": [
-                {{
-                    "title": "Assignment Title",
-                    "due_date": "YYYY-MM-DD",
-                    "description": "Assignment description",
-                    "points": 10,
-                    "weight": "10%"
-                }}
-            ],
-            "exams": [
-                {{
-                    "type": "Midterm/Final/Quiz",
-                    "date": "YYYY-MM-DD",
-                    "description": "Exam details",
-                    "points": 100,
-                    "weight": "30%"
-                }}
-            ],
-            "projects": [
-                {{
-                    "title": "Project Title",
-                    "due_date": "YYYY-MM-DD",
-                    "description": "Project description",
-                    "points": 100,
-                    "weight": "20%"
-                }}
-            ],
-            "academic_dates": [
-                {{
-                    "date": "YYYY-MM-DD",
-                    "description": "What happens on this date"
-                }}
-            ]
+            "course_name": "Course Name",
+            "professor": {{"name": "Name", "email": "email@domain.com", "office_hours": "Hours"}},
+            "class_schedule": "Schedule",
+            "chapters": [{{"name": "Chapter Name", "suggested_order": 1, "weekly_hours": 2}}],
+            "homework": [{{"title": "Assignment", "due_date": "YYYY-MM-DD"}}],
+            "exams": [{{"type": "Midterm", "date": "YYYY-MM-DD"}}],
+            "projects": [{{"title": "Project", "due_date": "YYYY-MM-DD"}}],
+            "academic_dates": ["Important dates"]
         }}
         """
         
@@ -189,25 +127,13 @@ def extract_syllabus_info(text: str, api_key: Optional[str] = None, optimize: bo
         
         # Parse JSON response
         import json
-        import re
         try:
-            # Log the raw response for debugging
-            logger.info(f"Gemini raw response (first 500 chars): {response.text[:500]}")
-            
-            # Strip markdown code blocks if present
-            response_text = response.text.strip()
-            if response_text.startswith('```'):
-                # Remove ```json or ``` at start and ``` at end
-                response_text = re.sub(r'^```(?:json)?\s*', '', response_text)
-                response_text = re.sub(r'\s*```$', '', response_text)
-            
-            data = json.loads(response_text)
+            data = json.loads(response.text)
             logger.info("Successfully extracted syllabus information")
             return data
-        except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse JSON response. Error: {e}")
-            logger.error(f"Raw response: {response.text[:1000]}")
-            return {"error": "Failed to parse AI response", "raw_response": response.text[:500]}
+        except json.JSONDecodeError:
+            logger.warning("Failed to parse JSON response")
+            return {"error": "Failed to parse AI response"}
             
     except Exception as e:
         logger.error(f"Error in AI extraction: {e}")
