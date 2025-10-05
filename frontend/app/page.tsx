@@ -116,11 +116,6 @@ export default function Home() {
       setParsedData(mockData);
       setShowParsedModal(true);
       console.log('📋 Mock data loaded and modal opened');
-      
-      console.log('Successfully processed syllabus:', selectedFile.name);
-    } catch (err) {
-      console.error('Error processing syllabus:', err);
-      setError(err instanceof Error ? err.message : 'Failed to process syllabus. Please try again.');
     } finally {
       setIsProcessing(false);
       console.log('🏁 Syllabus processing completed');
@@ -325,6 +320,7 @@ export default function Home() {
         parsedData={parsedData}
         onSave={handleSaveEvents}
         onContinue={handleContinueToCalendar}
+        syllabusFile={selectedFile}
       />
     </div>
   );

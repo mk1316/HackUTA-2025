@@ -240,12 +240,35 @@ export function convertBackendToFrontend(backendData: UploadResponse): ParsedSyl
     })),
   ];
 
+  // Extract year from the first event's due date, or use current year
+  let detectedYear = new Date().getFullYear().toString();
+  if (events.length > 0 && events[0].dueDate) {
+    const firstDate = new Date(events[0].dueDate);
+    if (!isNaN(firstDate.getTime())) {
+      detectedYear = firstDate.getFullYear().toString();
+    }
+  }
+
+  // Detect semester based on the month of the first event
+  let detectedSemester = 'Fall';
+  if (events.length > 0 && events[0].dueDate) {
+    const firstDate = new Date(events[0].dueDate);
+    const month = firstDate.getMonth(); // 0-11
+    if (month >= 0 && month <= 4) {
+      detectedSemester = 'Spring';
+    } else if (month >= 5 && month <= 7) {
+      detectedSemester = 'Summer';
+    } else {
+      detectedSemester = 'Fall';
+    }
+  }
+
   const result = {
     courseName: backendData.course_name,
     courseCode: backendData.course_name,
     instructor: backendData.professor.name,
-    semester: 'Fall', // This would need to be extracted from the syllabus
-    year: '2024', // This would need to be extracted from the syllabus
+    semester: detectedSemester,
+    year: detectedYear,
     events,
     totalEvents: events.length,
     parsedAt: new Date().toISOString(),
