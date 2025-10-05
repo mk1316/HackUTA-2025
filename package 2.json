@@ -27,18 +27,5 @@
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "description": "A Next.js application that automatically extracts assignments, exams, projects, and important dates from syllabus PDFs using Google's Gemini AI. Perfect for importing academic deadlines into your calendar app.",
-  "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/mk1316/HackUTA-2025.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/mk1316/HackUTA-2025/issues"
-  },
-  "homepage": "https://github.com/mk1316/HackUTA-2025#readme"
+  }
 }
