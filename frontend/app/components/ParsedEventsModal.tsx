@@ -153,7 +153,9 @@ export default function ParsedEventsModal({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // Parse date in local timezone to avoid off-by-one errors
+    const date = new Date(dateString + 'T12:00:00'); // Add noon time to prevent timezone issues
+    return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric'
