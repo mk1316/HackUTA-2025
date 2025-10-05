@@ -66,9 +66,51 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
+# Logs
+*.log
+
+# UV package manager
+.uv/
+
+# Temporary files
+temp/
+tmp/
+
+# Node.js
+node_modules/
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Next.js build output
+.vercel/
+
+# Package manager files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Next.js environment files
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Next.js cache
+.next/cache/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
 # Project specific
 *.pdf
 !sample_syllabi/*.pdf
+
+# Runtime/generated files (NLP specific)
 analysis_result.json
 deep_analysis_result.json
 optimized_analysis_result.json
