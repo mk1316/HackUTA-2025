@@ -108,12 +108,12 @@ def generate_mp3_with_elevenlabs(summary: str) -> str:
         return None
     
     try:
-        # Import ElevenLabs (new API v2.x)
-        from elevenlabs.client import ElevenLabs
+        # Import ElevenLabs (v0.2.26 API)
+        from elevenlabs import generate, save, set_api_key
         
-        # Initialize client
-        client = ElevenLabs(api_key=api_key)
-        print(f"✅ ElevenLabs client initialized")
+        # Set API key
+        set_api_key(api_key)
+        print(f"✅ ElevenLabs API key set")
         
         # Ensure output directory exists
         output_dir = "output"
@@ -123,20 +123,18 @@ def generate_mp3_with_elevenlabs(summary: str) -> str:
         cleaned_summary = clean_for_elevenlabs(summary)
         print("🧹 Text cleaned for ElevenLabs audio generation")
         
-        # Generate audio using the new API v2.x
+        # Generate audio using v0.2.26 API
         print("🎵 Generating audio with ElevenLabs...")
-        # Using Rachel's actual voice ID from ElevenLabs
-        audio_generator = client.text_to_speech.convert(
-            voice_id="21m00Tcm4TlvDq8ikWAM",  # Rachel's voice ID
+        # Using your custom voice ID
+        audio = generate(
             text=cleaned_summary,
-            model_id="eleven_monolingual_v1"
+            voice="l1HnyxS1XlopzjxxWRnm",  # Your custom voice ID
+            model="eleven_monolingual_v1"
         )
         
-        # Save to file (audio_generator is an iterator of audio chunks)
+        # Save to file
         output_path = os.path.join(output_dir, "macdonald_summary.mp3")
-        with open(output_path, 'wb') as f:
-            for chunk in audio_generator:
-                f.write(chunk)
+        save(audio, output_path)
         
         print(f"✅ MP3 saved to: {output_path}")
         return output_path
