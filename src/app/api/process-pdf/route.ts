@@ -97,6 +97,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
        - ✅ Surveys, evaluations, peer reviews
        - ✅ Lab work, practicals, workshops
        - ✅ Discussion posts, forums, reflections
+       - ✅ Office hours (recurring weekly schedule with day, time, location)
+       - ✅ Class meeting times (e.g., "MW 2:00-3:15 PM", "TTh 10:00-11:30 AM")
     
     6. EXTRACT FULL TITLES:
        - Use complete names: "Team Formation and Project Preferences" not "Team"
@@ -152,6 +154,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 "title": "Complete Project Title",
                 "due_date": "YYYY-MM-DD",
                 "description": "Project description"
+            }
+        ],
+        "office_hours": [
+            {
+                "day": "Monday/Tuesday/etc",
+                "time": "HH:MM AM/PM - HH:MM AM/PM",
+                "location": "Office location or Zoom link",
+                "recurrence": "weekly",
+                "start_date": "YYYY-MM-DD (first occurrence in semester)",
+                "end_date": "YYYY-MM-DD (last occurrence in semester)"
+            }
+        ],
+        "class_meetings": [
+            {
+                "days": ["Monday", "Wednesday"] or ["Tuesday", "Thursday"],
+                "time": "HH:MM AM/PM - HH:MM AM/PM",
+                "location": "Classroom location",
+                "recurrence": "weekly",
+                "start_date": "YYYY-MM-DD (first day of semester)",
+                "end_date": "YYYY-MM-DD (last day of semester)"
             }
         ]
     }
@@ -239,11 +261,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }));
       }
       
+      if (parsedData.office_hours && Array.isArray(parsedData.office_hours)) {
+        parsedData.office_hours = parsedData.office_hours.map((oh: any) => ({
+          ...oh,
+          start_date: validateDate(oh.start_date),
+          end_date: validateDate(oh.end_date)
+        }));
+      }
+      
+      if (parsedData.class_meetings && Array.isArray(parsedData.class_meetings)) {
+        parsedData.class_meetings = parsedData.class_meetings.map((cm: any) => ({
+          ...cm,
+          start_date: validateDate(cm.start_date),
+          end_date: validateDate(cm.end_date)
+        }));
+      }
+      
       console.log('Successfully parsed and validated:', {
         courseName: parsedData.course_name,
         assignmentCount: parsedData.homework?.length || 0,
         examCount: parsedData.exams?.length || 0,
-        projectCount: parsedData.projects?.length || 0
+        projectCount: parsedData.projects?.length || 0,
+        officeHoursCount: parsedData.office_hours?.length || 0,
+        classMeetingsCount: parsedData.class_meetings?.length || 0
       });
       
     } catch (parseError) {

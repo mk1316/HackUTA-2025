@@ -1,7 +1,7 @@
 export interface ParsedEvent {
   id: string;
   title: string;
-  type: 'assignment' | 'exam' | 'quiz' | 'project' | 'lecture' | 'other';
+  type: 'assignment' | 'exam' | 'quiz' | 'project' | 'lecture' | 'office_hours' | 'class' | 'other';
   dueDate: string; // ISO date string
   dueTime?: string; // Optional time
   description?: string;
@@ -12,6 +12,9 @@ export interface ParsedEvent {
   courseCode?: string;
   location?: string;
   isEdited?: boolean; // Track if user edited this item
+  recurrence?: 'weekly' | 'biweekly' | 'monthly'; // For recurring events like office hours and classes
+  endDate?: string; // For recurring events
+  days?: string[]; // For class meetings (e.g., ["Monday", "Wednesday"])
 }
 
 export interface ParsedSyllabus {
