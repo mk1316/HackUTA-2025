@@ -293,7 +293,7 @@ export default function UploadPage() {
         </div>
 
         {/* Bottom: errors, results, and audio */}
-        <div style={{position:'absolute',left:24,right:24,bottom:24,display:'flex',flexDirection:'column',gap:8}}>
+        <div style={{position:'absolute',left:24,right:24,bottom:24,display:'flex',flexDirection:'column',gap:8,zIndex:5}}>
           {!!error && (
             <div style={{padding:'10px 12px',background:'#ef4444',color:'#fff',border:'3px solid #000',borderRadius:'10px',boxShadow:'3px 3px 0 #000'}}>{error}</div>
           )}
