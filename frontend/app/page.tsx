@@ -9,6 +9,7 @@ import { generateMockParsedData } from './utils/mockData';
 import { ParsedSyllabus, ParsedEvent } from './types/syllabus';
 import { apiClient, convertBackendToFrontend } from './utils/api';
 import { Calendar, FileText, Clock, CheckCircle, Sparkles, Zap, Target, ArrowRight } from 'lucide-react';
+import { uploadSyllabus } from './lib/api';
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -115,6 +116,11 @@ export default function Home() {
       setParsedData(mockData);
       setShowParsedModal(true);
       console.log('📋 Mock data loaded and modal opened');
+      
+      console.log('Successfully processed syllabus:', selectedFile.name);
+    } catch (err) {
+      console.error('Error processing syllabus:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process syllabus. Please try again.');
     } finally {
       setIsProcessing(false);
       console.log('🏁 Syllabus processing completed');
