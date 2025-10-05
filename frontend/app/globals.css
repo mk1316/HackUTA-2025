@@ -19,6 +19,87 @@
   }
 }
 
+/* Spiderverse theme variables */
+[data-theme="spiderverse"] {
+  --background: #0a0a0a;
+  --foreground: #00d4ff;
+  --primary: #00d4ff;
+  --secondary: #ff073a;
+  --accent: #00ff88;
+  --text: #ffffff;
+  --text-muted: #00d4ff;
+  --border: #00d4ff;
+  --card-bg: rgba(0, 212, 255, 0.1);
+  --card-border: rgba(0, 212, 255, 0.3);
+}
+
+/* Spiderverse background with GIF support */
+.spiderverse-bg {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0033 50%, #0a0a0a 100%);
+}
+
+.spiderverse-gif-bg {
+  /* Spiderverse background image */
+  background-image: url('/200.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  /* Fallback gradient background - only shows if image fails to load */
+  background-color: #0a0a0a;
+  animation: gif-pulse 4s ease-in-out infinite;
+}
+
+@keyframes gif-pulse {
+  0%, 100% { 
+    filter: brightness(1) contrast(1) saturate(1);
+    transform: scale(1);
+  }
+  50% { 
+    filter: brightness(1.1) contrast(1.1) saturate(1.2);
+    transform: scale(1.02);
+  }
+}
+
+/* Spiderverse glow effects */
+.spiderverse-glow {
+  box-shadow: 0 0 20px #00d4ff, 0 0 40px #00d4ff, 0 0 60px #00d4ff;
+}
+
+.spiderverse-glow-red {
+  box-shadow: 0 0 20px #ff073a, 0 0 40px #ff073a, 0 0 60px #ff073a;
+}
+
+.spiderverse-glow-green {
+  box-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88, 0 0 60px #00ff88;
+}
+
+/* Spiderverse text effects */
+.spiderverse-text {
+  color: #00d4ff;
+  text-shadow: 0 0 10px #00d4ff;
+}
+
+.spiderverse-text-red {
+  color: #ff073a;
+  text-shadow: 0 0 10px #ff073a;
+}
+
+/* Spiderverse theme overrides for text */
+[data-theme="spiderverse"] body {
+  background: var(--background);
+  color: #ffffff;
+}
+
+[data-theme="spiderverse"] h1,
+[data-theme="spiderverse"] h2,
+[data-theme="spiderverse"] h3 {
+  color: #ffffff;
+}
+
+[data-theme="spiderverse"] p {
+  color: #ffffff;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -126,6 +207,32 @@ body {
 /* FullCalendar Custom Styles */
 .fc {
   font-family: inherit;
+}
+
+/* Hide FullCalendar tooltips and popovers */
+.fc-tooltip,
+.fc-popover,
+.fc-more-popover,
+.fc-event-tooltip,
+.fc-tooltip-chunk,
+.fc-popover-chunk,
+.fc-more-popover-chunk,
+.fc-event-tooltip-chunk,
+[class*="fc-tooltip"],
+[class*="fc-popover"],
+[class*="fc-more-popover"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide any white boxes that might appear on hover */
+.fc .fc-tooltip,
+.fc .fc-popover,
+.fc .fc-more-popover {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
 .fc-toolbar {
