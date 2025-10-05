@@ -6,8 +6,7 @@ Demonstrates the complete pipeline from PDF to structured JSON
 
 import os
 import json
-from main import extract_text
-from gemini_processor import analyze_syllabus_text, summarize_study_plan, configure_gemini_api
+from text_extraction import extract_text, extract_optimized_syllabus_info, print_optimized_schedule
 
 
 def process_syllabus_pdf(pdf_path: str, api_key: str = None) -> dict:
@@ -36,7 +35,7 @@ def process_syllabus_pdf(pdf_path: str, api_key: str = None) -> dict:
     # Step 2: Analyze with Gemini
     print("\n🤖 Step 2: Analyzing with Gemini AI...")
     try:
-        analysis_result = analyze_syllabus_text(extracted_text, api_key)
+        analysis_result = extract_optimized_syllabus_info(extracted_text, api_key)
         print("✅ Gemini analysis completed")
         return analysis_result
     except Exception as e:
@@ -51,7 +50,7 @@ def main():
     print("=" * 60)
     
     # Configuration
-    pdf_path = "sampleSyllabus/sample2.pdf"
+    pdf_path = "sample_syllabi/sample2.pdf"
     api_key = os.getenv('GEMINI_API_KEY')
     
     # Check API key
@@ -66,7 +65,7 @@ def main():
     # Check if PDF exists
     if not os.path.exists(pdf_path):
         print(f"❌ PDF file not found: {pdf_path}")
-        print("Please ensure your test PDF is in the sampleSyllabus directory")
+        print("Please ensure your test PDF is in the sample_syllabi directory")
         return
     
     # Process the syllabus
@@ -82,7 +81,7 @@ def main():
         print(json.dumps(result, indent=2))
         
         print("\n📋 FORMATTED SUMMARY:")
-        print(summarize_study_plan(result))
+        print(print_optimized_schedule(result))
         
         # Save results to file
         output_file = "analysis_result.json"
