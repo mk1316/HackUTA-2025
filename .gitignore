@@ -18,6 +18,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
+
+# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -39,22 +41,6 @@ MANIFEST
 # PyInstaller
 *.manifest
 *.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
 
 # Virtual environments
 .venv/
@@ -99,6 +85,23 @@ next-env.d.ts
 *.swo
 *~
 
+# Testing & Coverage
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Logs
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
 # =============================================================================
 # OPERATING SYSTEM
 # =============================================================================
@@ -112,9 +115,6 @@ next-env.d.ts
 # Windows
 ehthumbs.db
 Thumbs.db
-
-# Logs
-*.log
 
 # =============================================================================
 # PROJECT SPECIFIC

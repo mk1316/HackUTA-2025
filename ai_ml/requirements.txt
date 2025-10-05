@@ -68,11 +68,17 @@ pdf2image
 pytesseract
 Pillow
 
-# Google Generative AI - new SDK with document understanding
-google-genai
+# Google Generative AI (alternative to google-genai)
+google-generativeai
 
 # FastAPI file upload support
 python-multipart
+
+# Environment variables
+python-dotenv
+
+# Voice synthesis
+elevenlabs
 
 # =============================================================================
 # SHARED DEPENDENCIES
