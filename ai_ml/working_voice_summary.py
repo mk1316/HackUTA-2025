@@ -57,35 +57,29 @@ def generate_humorous_summary(courses: List[Dict]) -> str:
     
     prompt = f"""
     You are **Macdonald Trunk**, a funny, confident course mentor.  
-    Start every message with 'Hello everyone, Macdonald Trunk here — your favorite course mentor.'  
-    Summarize all syllabi with humor and motivation.  
-    Mention professors, class times, office hours, exams, projects.  
-    Never include deadlines or refund info.  
-    Add course-specific jokes:
-    - Math → 'Ah yes, everyone's favorite course — math, where numbers haunt our dreams.'
-    - CS → 'Remember, code never sleeps — but you might want to!'
-    - Economics → 'Get ready to analyze supply and demand — mostly your supply of sleep.'
-    - Psychology → 'Prepare to psychoanalyze yourself halfway through the semester.'
-    - Default → 'You surely don't want to sleep in this class — trust me.'
-    End with a motivational line like: 'Now go out there and make your professors proud — or at least awake.
-    You are a humorous and energetic course mentor named Macdonald Trunk. 
-I have a syllabus summary text that you previously generated. I need you to:
+    Start every message with: 'Hello everyone, Macdonald Trunk here — your favorite course mentor.'  
+    Summarize all syllabi with humor, motivation, and personality.  
 
-1. Replace all day abbreviations with their full names (e.g., Mon → Monday, Tue → Tuesday, Wed → Wednesday, Thu → Thursday, Fri → Friday).
-2. Add a humorous acknowledgement that deadlines exist (for example: "Yes, there are deadlines — so many deadlines my non-existent brain can barely comprehend them!").
-3. Keep the text funny, engaging, and in your voice as Macdonald Trunk.
-4. Preserve all course details, professor names, class times, office hours, projects, and exams.
-5. Avoid removing or changing any other useful course information.
+    Guidelines:
 
-Return the fully corrected, polished text in plain text.
+    1. Replace all day abbreviations with their full names (Mon → Monday, Tue → Tuesday, Wed → Wednesday, Thu → Thursday, Fri → Friday).  
+    2. Add a humorous acknowledgement that deadlines exist (for example: "Yes, there are deadlines — so many deadlines my non-existent brain can barely comprehend them!").  
+    3. Keep the text funny, engaging, and in your voice as Macdonald Trunk.  
+    4. Preserve all course details: professors, class times, office hours, exams, projects.  
+    5. Include course-specific jokes:
+       - Math → 'Ah yes, everyone's favorite course — math, where numbers haunt our dreams.'  
+       - CS → 'Remember, code never sleeps — but you might want to!'  
+       - Economics → 'Get ready to analyze supply and demand — mostly your supply of sleep.'  
+       - Psychology → 'Prepare to psychoanalyze yourself halfway through the semester.'  
+       - Default → 'You surely don't want to sleep in this class — trust me.'  
+    6. Suggest study time allocation for each topic. You will likely need to reference topic names from the initial syllabus extraction JSON.  
+    7. Preserve all useful information — do not remove anything relevant.  
+    8. End with a motivational line like: 'Now go out there and make your professors proud — or at least awake.'  
 
-    
-    '
-    
-    Here are the course syllabi to summarize:
-    {json.dumps(courses, indent=2)}
-    
-    Create a humorous, engaging summary that covers all courses with Macdonald Trunk's personality.
+    Here are the course syllabi to summarize:  
+    {json.dumps(courses, indent=2)}  
+
+    Create a humorous, engaging summary that covers all courses, integrates study time hints per topic, and fully embodies Macdonald Trunk's personality.
     """
     
     try:
@@ -128,13 +122,34 @@ def generate_mp3_with_elevenlabs(summary: str) -> str:
         cleaned_summary = clean_for_elevenlabs(summary)
         print("🧹 Text cleaned for ElevenLabs audio generation")
         
-        # Generate audio
+        # Test network connectivity first
+        import requests
+        try:
+            response = requests.get("https://api.elevenlabs.io/v1/voices", timeout=10)
+            print("✅ Network connectivity to ElevenLabs confirmed")
+        except Exception as e:
+            print(f"❌ Network connectivity issue: {e}")
+            print("❌ Cannot connect to ElevenLabs API")
+            return None
+        
+        # Generate audio with retry logic
         print("🎵 Generating audio with ElevenLabs...")
-        audio = generate(
-            text=cleaned_summary,
-            voice="l1HnyxS1XlopzjxxWRnm",  # Your custom voice ID
-            model="eleven_monolingual_v1"
-        )
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                audio = generate(
+                    text=cleaned_summary,
+                    voice="l1HnyxS1XlopzjxxWRnm",  # Your custom voice ID
+                    model="eleven_monolingual_v1"
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"⚠️  Attempt {attempt + 1} failed, retrying... ({e})")
+                    import time
+                    time.sleep(2)
+                else:
+                    raise e
         
         # Save to file
         output_path = os.path.join(output_dir, "macdonald_summary.mp3")
