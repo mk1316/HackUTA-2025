@@ -1,0 +1,12 @@
+# AI/ML Service Dependencies for Vercel
+fastapi==0.118.0
+uvicorn==0.37.0
+python-dotenv==1.1.1
+pdfplumber==0.11.7
+pdf2image==1.17.0
+pytesseract==0.3.13
+Pillow==11.3.0
+google-generativeai==0.8.5
+elevenlabs==0.2.26
+python-multipart==0.0.20
+loguru==0.7.2

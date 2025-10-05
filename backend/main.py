@@ -30,12 +30,20 @@ app = FastAPI(
 )
 
 # CORS configuration
-FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+FRONTEND_ORIGIN = os.getenv("FRONTEND_ORIGIN", "http://localhost:3000")
 AI_ML_URL = os.getenv("AI_ML_URL", "http://localhost:5050")
+
+# Allow multiple origins for development
+allowed_origins = [
+    FRONTEND_ORIGIN,
+    "http://localhost:3000",  # Next.js default
+    "http://localhost:5173",  # Vite default
+    AI_ML_URL
+]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_ORIGIN, AI_ML_URL],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
