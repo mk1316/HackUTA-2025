@@ -118,8 +118,13 @@ export default function UploadPage() {
       });
       
       if (!resp.ok) {
-        const errorText = await resp.text();
-        throw new Error(errorText || 'Failed to process file');
+        try {
+          const errJson = await resp.json();
+          throw new Error(errJson?.error || 'Failed to process file');
+        } catch {
+          const errorText = await resp.text();
+          throw new Error(errorText || 'Failed to process file');
+        }
       }
       
       const data = await resp.json();
@@ -197,10 +202,16 @@ export default function UploadPage() {
           body: JSON.stringify({ text: data.result }),
         });
         if (!audioResponse.ok) {
-          console.error('Audio generation failed - this feature requires Python dependencies');
-          // Don't throw error, just log it - audio is optional
-          setError('Audio generation unavailable (requires Python setup)');
-          setTimeout(() => setError(''), 3000); // Clear error after 3 seconds
+          try {
+            const errJson = await audioResponse.json();
+            console.error('Audio generation failed:', errJson);
+            setError(errJson?.error || 'Audio generation failed');
+          } catch {
+            const errText = await audioResponse.text();
+            console.error('Audio generation failed:', errText);
+            setError(errText || 'Audio generation failed');
+          }
+          setTimeout(() => setError(''), 3000);
         } else {
           const audioBlob = await audioResponse.blob();
           const url = URL.createObjectURL(audioBlob);
@@ -208,7 +219,7 @@ export default function UploadPage() {
         }
       } catch (e) {
         console.error('Audio generation failed', e);
-        setError('Audio generation unavailable');
+        setError('Audio generation failed');
         setTimeout(() => setError(''), 3000);
       } finally {
         setIsGeneratingAudio(false);

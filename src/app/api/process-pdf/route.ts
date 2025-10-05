@@ -228,9 +228,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate AI-powered syllabus extraction using Gemini
     const result = await genAI.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      contents: contents
+      contents
     });
-    const rawResponse = result.text;
+    const rawResponse = (result as any)?.text as string | undefined;
+    if (!rawResponse) {
+      throw new Error('Empty response from AI');
+    }
 
     // Helper function to validate and fix dates
     const validateDate = (dateStr?: string): string => {

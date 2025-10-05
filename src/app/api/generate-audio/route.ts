@@ -14,6 +14,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Check if ElevenLabs API key is available
     const elevenLabsApiKey = process.env.ELEVENLABS_API_KEY;
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+    const modelId = process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2';
     if (!elevenLabsApiKey) {
       return NextResponse.json(
         { 
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // Call ElevenLabs API directly
-    const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
         'Accept': 'audio/mpeg',
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       },
       body: JSON.stringify({
         text: text.trim(),
-        model_id: 'eleven_monolingual_v1',
+        model_id: modelId,
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.5
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.error('ElevenLabs API error:', errorText);
       return NextResponse.json(
         { 
-          error: 'Audio generation service temporarily unavailable',
+          error: `Audio generation failed: ${errorText || 'service temporarily unavailable'}`,
           success: false 
         },
         { status: 503 }
