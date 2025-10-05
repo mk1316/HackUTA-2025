@@ -133,6 +133,24 @@ export default function Home() {
 
       const data = await response.json();
       setHumorousSummary(data.result);
+
+      // Immediately trigger audio generation with a single success/failure log
+      try {
+        const audioResponse = await fetch('/api/generate-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ text: data.result }),
+        });
+        if (audioResponse.ok) {
+          console.log('Audio generation: success');
+        } else {
+          console.log('Audio generation: failed');
+        }
+      } catch {
+        console.log('Audio generation: failed');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
