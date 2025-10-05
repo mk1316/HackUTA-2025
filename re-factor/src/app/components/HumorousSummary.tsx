@@ -4,15 +4,13 @@ import { useState, useRef } from 'react';
 
 interface HumorousSummaryProps {
   summary: string;
-  isGenerating: boolean;
-  onGenerate: () => void;
 }
 
 /**
  * HumorousSummary component generates and plays audio summary of the syllabus
  * Handles audio generation, playback controls, and loading states
  */
-export default function HumorousSummary({ summary, isGenerating, onGenerate }: HumorousSummaryProps) {
+export default function HumorousSummary({ summary }: HumorousSummaryProps) {
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [isGeneratingAudio, setIsGeneratingAudio] = useState<boolean>(false);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -181,7 +179,7 @@ export default function HumorousSummary({ summary, isGenerating, onGenerate }: H
             {audioUrl ? (
               <p>✅ Audio summary ready! Click play to listen to your hilarious course overview.</p>
             ) : (
-              <p>📝 Text summary generated. Click "Convert to Audio" to create an audio version.</p>
+              <p>📝 Text summary generated. Click &quot;Convert to Audio&quot; to create an audio version.</p>
             )}
           </div>
         </div>
@@ -192,7 +190,7 @@ export default function HumorousSummary({ summary, isGenerating, onGenerate }: H
               <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 12a7.971 7.971 0 00-1.343-4.243 1 1 0 010-1.414z" clipRule="evenodd" />
             </svg>
             <p className="text-sm">
-              Click "Generate Audio Summary" to create a hilarious audio overview of your syllabus! 🎧
+              Click &quot;Generate Audio Summary&quot; to create a hilarious audio overview of your syllabus! 🎧
             </p>
           </div>
         </div>

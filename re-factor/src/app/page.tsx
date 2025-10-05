@@ -12,11 +12,25 @@ import HumorousSummary from './components/HumorousSummary';
  * Main component for PDF upload and AI processing
  * Handles file upload, drag & drop, and displays AI-generated summaries
  */
+type SyllabusData = {
+  course_name?: string;
+  course_code?: string;
+  professor?: {
+    name?: string;
+    email?: string;
+    office_hours?: string;
+  };
+  class_schedule?: string;
+  homework?: Array<{ title: string; due_date: string; description?: string }>;
+  exams?: Array<{ type: string; date: string; description?: string }>;
+  projects?: Array<{ title: string; due_date: string; description?: string }>;
+};
+
 export default function Home() {
   // State management for file upload and processing
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SyllabusData | null>(null);
   const [error, setError] = useState<string>('');
   
   // State for humorous summary
@@ -35,7 +49,7 @@ export default function Home() {
     if (selectedFile) {
       setFile(selectedFile);
       // Clear previous results and errors when new file is selected
-      setResult('');
+      setResult(null);
       setError('');
     }
   };
@@ -58,7 +72,7 @@ export default function Home() {
     if (droppedFile) {
       setFile(droppedFile);
       // Clear previous results and errors when new file is dropped
-      setResult('');
+      setResult(null);
       setError('');
     }
   };
@@ -72,7 +86,7 @@ export default function Home() {
 
     setIsProcessing(true);
     setError('');
-    setResult('');
+    setResult(null);
 
     try {
       // Create FormData to send file to API
@@ -90,7 +104,7 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setResult(data.result);
+      setResult(data.result as SyllabusData);
     } catch (err) {
       // Handle errors gracefully with user-friendly messages
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -199,8 +213,6 @@ export default function Home() {
           {/* Humorous Summary Display */}
           <HumorousSummary
             summary={humorousSummary}
-            isGenerating={isGeneratingHumorous}
-            onGenerate={handleGenerateHumorousSummary}
           />
         </div>
       </div>
