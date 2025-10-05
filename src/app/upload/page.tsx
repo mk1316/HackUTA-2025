@@ -179,76 +179,72 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-8">
-      <div className="w-full max-w-2xl">
-        <div className="space-y-6">
-          {/* File Upload Component */}
-          <FileUpload
-            onFileChange={handleFileChange}
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-          />
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'24px',background:'#fef3c7',position:'relative',overflow:'hidden'}}>
+      {/* Background shapes */}
+      <div className="hb-shape hb-circle" style={{left:-60, top:-40}} />
+      <div className="hb-shape hb-circle hb-2" />
+      <div className="hb-shape hb-triangle" style={{left: -30, bottom: -20}} />
 
-          {/* Selected File Information - Shows when file is uploaded */}
-          {file && (
-            <FileInfo
-              file={file}
-              onRemove={clearFile}
-            />
-          )}
+      <div style={{background:'#fff',borderRadius:'24px',boxShadow:'6px 6px 0 #000, 0 25px 50px -12px rgba(0,0,0,0.25)',width:'100%',maxWidth:'1300px',height:'92vh',display:'flex',padding:'28px',border:'3px solid #000',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:16,left:20,color:'#000',fontWeight:800,fontSize:'36px'}}>Syllable</div>
 
-          {/* Process Button - Only shows when file is selected */}
-          {file && (
-            <div className="flex items-center justify-center gap-3">
-              <ProcessButton
-                isProcessing={isProcessing}
-                onProcess={handleProcessFile}
-              />
+        {/* Hidden file input for click-to-upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          onChange={handleFileChange}
+          style={{display:'none'}}
+        />
+
+        {/* Left column: big upload button */}
+        <div style={{flex:1.5,display:'flex',alignItems:'center',justifyContent:'center',height:'100%'}}>
+          <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'16px',width:'100%',height:'100%',paddingTop:'72px'}}>
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              style={{width:'100%',height:'90%'}}
+            >
               <button
-                onClick={handleGenerateHumorousSummary}
-                disabled={isGeneratingHumorous}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-             >
-                {isGeneratingHumorous ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Generating Audio Summary...
-                  </>
-                ) : (
-                  'Generate Audio Summary'
-                )}
+                onClick={() => fileInputRef.current?.click()}
+                className="hb-btn"
+                style={{width:'100%',height:'100%',background:'#3b82f6',color:'#fff',fontSize:'32px',fontWeight:800,borderRadius:'14px',boxShadow:'5px 5px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:'pointer'}}
+              >
+                {file ? 'Change PDF' : 'Upload PDF'}
               </button>
             </div>
+            {file && (
+              <div style={{padding:'8px 10px',border:'3px dashed #000',borderRadius:'10px',background:'#fff'}}>
+                <span style={{fontWeight:600,marginRight:'6px'}}>{file.name}</span>
+                <span style={{opacity:0.7}}>({(file.size/1024/1024).toFixed(2)} MB)</span>
+                <button onClick={clearFile} style={{marginLeft:12,padding:'4px 8px',border:'2px solid #000',borderRadius:8,background:'#fff',boxShadow:'2px 2px 0 #000',cursor:'pointer'}}>Remove</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right column: action buttons */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',gap:'18px',marginLeft:'24px'}}>
+          <button onClick={handleProcessFile} disabled={!file || isProcessing} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isProcessing)?'not-allowed':'pointer',opacity:(!file||isProcessing)?0.7:1}}>
+            {isProcessing ? 'Processing…' : 'Sync to Calendar'}
+          </button>
+          <button onClick={handleGenerateHumorousSummary} disabled={!file || isGeneratingHumorous} className="hb-btn" style={{flex:1,background:'#a855f7',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isGeneratingHumorous)?'not-allowed':'pointer',opacity:(!file||isGeneratingHumorous)?0.7:1}}>
+            {isGeneratingHumorous ? 'Summarizing…' : 'Summarize Audio'}
+          </button>
+          <button disabled className="hb-btn" style={{flex:1,background:'#ef4444',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:'not-allowed',opacity:0.6}}>To-Do (coming soon)</button>
+        </div>
+
+        {/* Bottom: errors, results, and audio */}
+        <div style={{position:'absolute',left:24,right:24,bottom:24,display:'flex',flexDirection:'column',gap:8}}>
+          {!!error && (
+            <div style={{padding:'10px 12px',background:'#ef4444',color:'#fff',border:'3px solid #000',borderRadius:'10px',boxShadow:'3px 3px 0 #000'}}>{error}</div>
           )}
-
-          {/* Error Display - Shows when processing fails */}
-          <ErrorDisplay error={error} />
-
-          {/* Result Display - Shows structured syllabus data */}
-          {result !== null && (
-            <SyllabusResults 
-              result={result as SyllabusData} 
-              onGenerateHumorousSummary={handleGenerateHumorousSummary}
-            />
-          )}
-
-          {/* Bottom mini loading indicator and audio player */}
           {isGeneratingAudio && (
-            <div className="bg-gray-900 text-white rounded-md shadow px-4 py-2 text-sm flex items-center gap-2">
-              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Preparing audio summary...
-            </div>
+            <div style={{background:'#111',color:'#fff',borderRadius:8,boxShadow:'3px 3px 0 #000',padding:'8px 12px',display:'inline-flex',alignItems:'center',gap:8}}>Preparing audio summary…</div>
           )}
-
           {audioUrl && !isGeneratingAudio && (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-3 w-full">
-              <audio controls src={audioUrl} className="w-full" />
+            <div style={{background:'#fff',border:'3px solid #000',borderRadius:12,boxShadow:'3px 3px 0 #000',padding:12}}>
+              <audio controls src={audioUrl} style={{width:'100%'}} />
             </div>
           )}
         </div>
