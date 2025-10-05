@@ -74,6 +74,12 @@ google-generativeai
 # FastAPI file upload support
 python-multipart
 
+# Environment variables
+python-dotenv
+
+# Voice synthesis
+elevenlabs
+
 # =============================================================================
 # SHARED DEPENDENCIES
 # =============================================================================
