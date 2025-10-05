@@ -1,5 +1,5 @@
-import AppHomeClient from './components/AppHomeClient';
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  return <AppHomeClient />;
+  redirect('/upload');
 }
