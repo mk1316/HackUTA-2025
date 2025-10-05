@@ -5,6 +5,7 @@ import { X, Edit3, Save, Trash2, Plus, Calendar, Clock, BookOpen, Target, AlertC
 import { ParsedSyllabus, ParsedEvent, EventFormData } from '../types/syllabus';
 import { downloadICS } from '../utils/calendar';
 import { generateVoiceSummary } from '../lib/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ParsedEventsModalProps {
   isOpen: boolean;
