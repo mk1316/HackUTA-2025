@@ -160,7 +160,7 @@ export default function CalendarView({ events, onEventClick, onDateClick }: Cale
             className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
               view === 'dayGridMonth' 
                 ? 'bg-white bg-opacity-30' 
-                : 'hover:bg-white hover:bg-opacity-20'
+                : 'hover:bg-white hover:bg-opacity-10'
             }`}
           >
             <Grid className="h-4 w-4 mr-2" />
@@ -171,7 +171,7 @@ export default function CalendarView({ events, onEventClick, onDateClick }: Cale
             className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
               view === 'timeGridWeek' 
                 ? 'bg-white bg-opacity-30' 
-                : 'hover:bg-white hover:bg-opacity-20'
+                : 'hover:bg-white hover:bg-opacity-10'
             }`}
           >
             <List className="h-4 w-4 mr-2" />
@@ -182,7 +182,7 @@ export default function CalendarView({ events, onEventClick, onDateClick }: Cale
             className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
               view === 'timeGridDay' 
                 ? 'bg-white bg-opacity-30' 
-                : 'hover:bg-white hover:bg-opacity-20'
+                : 'hover:bg-white hover:bg-opacity-10'
             }`}
           >
             <Clock className="h-4 w-4 mr-2" />
@@ -204,6 +204,12 @@ export default function CalendarView({ events, onEventClick, onDateClick }: Cale
           height="auto"
           dayMaxEvents={3}
           moreLinkClick="popover"
+          eventDidMount={(info) => {
+            // Disable tooltips on events
+            info.el.style.pointerEvents = 'auto';
+          }}
+          eventMouseEnter={() => {}}
+          eventMouseLeave={() => {}}
           eventDisplay="block"
           eventTimeFormat={{
             hour: 'numeric',

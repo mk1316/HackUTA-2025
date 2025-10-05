@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -114,7 +114,7 @@ function KanbanCard({ event, onUpdateEvent, onDeleteEvent }: KanbanCardProps) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-all duration-200 ${
+      className={`bg-gray-600 rounded-lg shadow-sm border border-gray-500 p-4 hover:shadow-md transition-all duration-200 ${
         isDragging ? 'rotate-2 scale-105' : ''
       }`}
     >
@@ -148,9 +148,9 @@ function KanbanCard({ event, onUpdateEvent, onDeleteEvent }: KanbanCardProps) {
         </div>
       </div>
 
-      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{event.title}</h3>
+      <h3 className="font-semibold text-white mb-2 line-clamp-2">{event.title}</h3>
       
-      <div className="space-y-2 text-sm text-gray-600">
+      <div className="space-y-2 text-sm text-gray-300">
         <div className="flex items-center space-x-2">
           <Calendar className="h-4 w-4" />
           <span>{formatDate(event.dueDate)}</span>
@@ -171,14 +171,14 @@ function KanbanCard({ event, onUpdateEvent, onDeleteEvent }: KanbanCardProps) {
         )}
 
         {event.courseCode && (
-          <div className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+          <div className="text-xs text-gray-200 bg-gray-500 px-2 py-1 rounded">
             {event.courseCode}
           </div>
         )}
       </div>
 
       {event.description && (
-        <p className="text-xs text-gray-500 mt-3 line-clamp-2">{event.description}</p>
+        <p className="text-xs text-gray-400 mt-3 line-clamp-2">{event.description}</p>
       )}
     </div>
   );
@@ -186,10 +186,10 @@ function KanbanCard({ event, onUpdateEvent, onDeleteEvent }: KanbanCardProps) {
 
 function KanbanColumn({ id, title, events, color, onUpdateEvent, onDeleteEvent }: KanbanColumnProps) {
   return (
-    <div className="flex-1 bg-gray-50 rounded-lg p-4 min-h-[600px]">
+    <div className="flex-1 bg-gray-700 rounded-lg p-4 min-h-[600px]">
       <div className="flex items-center justify-between mb-4">
-        <h3 className={`font-semibold text-lg ${color}`}>{title}</h3>
-        <span className="bg-gray-200 text-gray-600 text-sm px-2 py-1 rounded-full">
+        <h3 className={`font-semibold text-lg text-white`}>{title}</h3>
+        <span className="bg-gray-600 text-gray-200 text-sm px-2 py-1 rounded-full">
           {events.length}
         </span>
       </div>
@@ -223,6 +223,15 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
     'in-progress': events.filter(event => event.status === 'in-progress'),
     completed: events.filter(event => event.status === 'completed'),
   });
+
+  // Update columns when events prop changes
+  useEffect(() => {
+    setColumns({
+      pending: events.filter(event => event.status === 'pending'),
+      'in-progress': events.filter(event => event.status === 'in-progress'),
+      completed: events.filter(event => event.status === 'completed'),
+    });
+  }, [events]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -293,20 +302,20 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
   }, [columns, onUpdateEvent]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div className="bg-gray-900 rounded-2xl shadow-xl overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+      <div className="bg-gradient-to-r from-gray-800 to-gray-700 p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Target className="h-8 w-8" />
             <div>
               <h2 className="text-2xl font-bold">Deadline Management</h2>
-              <p className="text-blue-100">Drag and drop to manage your assignments</p>
+              <p className="text-gray-300">Drag and drop to manage your assignments</p>
             </div>
           </div>
           <button
             onClick={onAddEvent}
-            className="flex items-center px-4 py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors"
+            className="flex items-center px-4 py-2 text-white hover:text-gray-300 transition-colors cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Task
@@ -315,7 +324,7 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
       </div>
 
       {/* Kanban Board */}
-      <div className="p-6">
+      <div className="p-6 bg-gray-800">
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -326,7 +335,7 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
               id="pending"
               title="To Do"
               events={columns.pending}
-              color="text-gray-600"
+              color="text-white"
               onUpdateEvent={onUpdateEvent}
               onDeleteEvent={onDeleteEvent}
             />
@@ -334,7 +343,7 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
               id="in-progress"
               title="In Progress"
               events={columns['in-progress']}
-              color="text-blue-600"
+              color="text-white"
               onUpdateEvent={onUpdateEvent}
               onDeleteEvent={onDeleteEvent}
             />
@@ -342,7 +351,7 @@ export default function KanbanBoard({ events, onUpdateEvent, onDeleteEvent, onAd
               id="completed"
               title="Done"
               events={columns.completed}
-              color="text-green-600"
+              color="text-white"
               onUpdateEvent={onUpdateEvent}
               onDeleteEvent={onDeleteEvent}
             />
