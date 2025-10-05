@@ -31,6 +31,7 @@ export default function UploadPage() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [result, setResult] = useState<SyllabusData | null>(null);
   const [error, setError] = useState<string>('');
+  const [syllabusId, setSyllabusId] = useState<string>('');
   
   // State for humorous summary
   const [humorousSummary, setHumorousSummary] = useState<string>('');
@@ -94,22 +95,23 @@ export default function UploadPage() {
     setResult(null);
 
     try {
-      // Create FormData to send file to API
+      const backend = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
       const formData = new FormData();
       formData.append('file', file);
-
-      // Send POST request to process-pdf API endpoint
-      const response = await fetch('/api/process-pdf', {
+      const token = typeof window !== 'undefined' ? (localStorage.getItem('access_token') || '') : '';
+      const resp = await fetch(`${backend}/upload/`, {
         method: 'POST',
-        body: formData,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        body: formData
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to process file');
+      if (!resp.ok) {
+        const t = await resp.text();
+        throw new Error(t || 'Failed to process file');
       }
-
-      const data = await response.json();
-      setResult(data.result as SyllabusData);
+      const payload = await resp.json();
+      const parsed = payload?.data || {};
+      setSyllabusId(parsed?._id || '');
+      setResult((parsed?.parsed_data as SyllabusData) || null);
     } catch (err) {
       // Handle errors gracefully with user-friendly messages
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -218,9 +220,9 @@ export default function UploadPage() {
               </button>
             </div>
             {file && (
-              <div style={{padding:'8px 10px',border:'3px dashed #000',borderRadius:'10px',background:'#fff'}}>
-                <span style={{fontWeight:600,marginRight:'6px'}}>{file.name}</span>
-                <span style={{opacity:0.7}}>({(file.size/1024/1024).toFixed(2)} MB)</span>
+              <div style={{padding:'8px 10px',border:'3px dashed #000',borderRadius:'10px',background:'#fff',color:'#000'}}>
+                <span style={{fontWeight:700,marginRight:'6px',color:'#000'}}>{file.name}</span>
+                <span style={{opacity:0.85,color:'#000'}}>({(file.size/1024/1024).toFixed(2)} MB)</span>
                 <button onClick={clearFile} style={{marginLeft:12,padding:'4px 8px',border:'2px solid #000',borderRadius:8,background:'#fff',boxShadow:'2px 2px 0 #000',cursor:'pointer'}}>Remove</button>
               </div>
             )}
@@ -229,7 +231,7 @@ export default function UploadPage() {
 
         {/* Right column: action buttons */}
         <div style={{flex:1,display:'flex',flexDirection:'column',justifyContent:'flex-start',gap:'18px',marginLeft:'24px',position:'relative',zIndex:1}}>
-          <button onClick={()=>setShowCalendar(v=>!v)} disabled={!result} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:result? 'pointer':'not-allowed',opacity:result?1:0.7}}>
+          <button onClick={()=>setShowCalendar(v=>!v)} className="hb-btn" style={{flex:1,background:'#22c55e',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:'pointer'}}>
             {showCalendar ? 'Hide Calendar' : 'Calendar'}
           </button>
           <button onClick={handleGenerateHumorousSummary} disabled={!file || isGeneratingHumorous} className="hb-btn" style={{flex:1,background:'#a855f7',color:'#fff',fontWeight:800,fontSize:'18px',padding:'16px',borderRadius:'12px',boxShadow:'4px 4px 0 #000, 0 12px 18px -4px rgba(0,0,0,0.25)',border:'3px solid #000',cursor:(!file||isGeneratingHumorous)?'not-allowed':'pointer',opacity:(!file||isGeneratingHumorous)?0.7:1}}>
@@ -256,9 +258,9 @@ export default function UploadPage() {
         </div>
         {/* To-Do panel (inside board) */}
         {showTodo && (
-          <div style={{position:'absolute',inset:'80px 28px 90px 28px',background:'#fff',border:'3px solid #000',borderRadius:'16px',boxShadow:'6px 6px 0 #000',padding:'18px',overflow:'auto',zIndex:2}}>
+          <div style={{position:'absolute',inset:'80px 28px 90px 28px',background:'#fff',border:'3px solid #000',borderRadius:'16px',boxShadow:'6px 6px 0 #000',padding:'18px',overflow:'auto',zIndex:2,color:'#000'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
-              <div style={{fontWeight:800,fontSize:'24px',color:'#000'}}>To-Do</div>
+              <div style={{fontWeight:900,fontSize:'24px',color:'#000'}}>To-Do</div>
               <button onClick={()=>setShowTodo(false)} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Close</button>
             </div>
             {(() => {
@@ -278,21 +280,21 @@ export default function UploadPage() {
               }
               if (items.length === 0) {
                 return (
-                  <div style={{border:'3px solid #000',borderRadius:'12px',padding:'16px',boxShadow:'4px 4px 0 #000',background:'#fff',fontSize:'18px'}}>
+                  <div style={{border:'3px solid #000',borderRadius:'12px',padding:'16px',boxShadow:'4px 4px 0 #000',background:'#fff',fontSize:'18px',color:'#000',fontWeight:700}}>
                     You are Up to Date with your College Assignments
                   </div>
                 );
               }
               return (
-                <div style={{border:'3px solid #000',borderRadius:'16px',overflow:'hidden',background:'#fff',boxShadow:'4px 4px 0 #000'}}>
-                  <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr'}}>
-                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',borderRight:'3px solid #000',fontWeight:800}}>Assignment</div>
-                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',fontWeight:800}}>Due date</div>
+                <div style={{border:'3px solid #000',borderRadius:'16px',overflow:'hidden',background:'#fff',boxShadow:'4px 4px 0 #000',color:'#000'}}>
+                  <div style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',background:'#f8fafc'}}>
+                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',borderRight:'3px solid #000',fontWeight:900,color:'#000'}}>Assignment</div>
+                    <div style={{padding:'12px 14px',borderBottom:'3px solid #000',fontWeight:900,color:'#000'}}>Due date</div>
                   </div>
                   {items.map((it, idx) => (
                     <div key={idx} style={{display:'grid',gridTemplateColumns:'1.5fr 1fr',borderTop: idx===0? '': '3px solid #000'}}>
-                      <div style={{padding:'12px 14px',borderRight:'3px solid #000'}}>{it.title}</div>
-                      <div style={{padding:'12px 14px'}}>{it.due || '—'}</div>
+                      <div style={{padding:'12px 14px',borderRight:'3px solid #000',color:'#000'}}>{it.title}</div>
+                      <div style={{padding:'12px 14px',color:'#000'}}>{it.due || '—'}</div>
                     </div>
                   ))}
                 </div>
@@ -304,16 +306,59 @@ export default function UploadPage() {
         {/* Calendar panel (inside board) */}
         {showCalendar && (
           <div style={{position:'absolute',inset:'80px 28px 90px 28px',background:'#fff',border:'3px solid #000',borderRadius:'16px',boxShadow:'6px 6px 0 #000',padding:'18px',overflow:'auto',zIndex:2}}>
-            {/* Autumn leaves accents */}
-            <svg width="120" height="120" style={{position:'absolute',left:14,top:14,opacity:.15}} viewBox="0 0 24 24">
-              <path fill="#8B4513" d="M12 2c4 4 6 8 6 12s-2 6-6 6-6-2-6-6 2-8 6-12z" />
-            </svg>
-            <svg width="90" height="90" style={{position:'absolute',right:18,bottom:18,opacity:.15}} viewBox="0 0 24 24">
-              <path fill="#A0522D" d="M12 2c3 3 5 6 5 9s-2 5-5 5-5-2-5-5 2-6 5-9z" />
-            </svg>
+            {/* Seasonal accents based on month */}
+            {(() => {
+              const m = calendarDate.getMonth();
+              // December: snowman
+              if (m === 11) {
+                return (
+                  <svg width="140" height="140" style={{position:'absolute',left:14,top:14,opacity:.16}} viewBox="0 0 120 140">
+                    <circle cx="60" cy="100" r="28" fill="#e5e7eb" stroke="#000" strokeWidth="2" />
+                    <circle cx="60" cy="62" r="20" fill="#e5e7eb" stroke="#000" strokeWidth="2" />
+                    <circle cx="53" cy="58" r="2" fill="#000" />
+                    <circle cx="67" cy="58" r="2" fill="#000" />
+                    <polygon points="60,62 78,66 60,70" fill="#f97316" stroke="#000" strokeWidth="1" />
+                  </svg>
+                );
+              }
+              // January: snowflake
+              if (m === 0) {
+                return (
+                  <svg width="140" height="140" style={{position:'absolute',left:14,top:14,opacity:.16}} viewBox="0 0 120 120">
+                    <path d="M60 10 V110 M10 60 H110 M25 25 L95 95 M95 25 L25 95" stroke="#60a5fa" strokeWidth="4" />
+                  </svg>
+                );
+              }
+              // August/Autumn-ish: leaves
+              if (m === 7 || m === 8 || m === 9) {
+                return (
+                  <svg width="140" height="140" style={{position:'absolute',left:14,top:14,opacity:.16}} viewBox="0 0 120 120">
+                    <path d="M60 10 C 90 40, 90 80, 60 110 C 30 80, 30 40, 60 10 Z" fill="#ca8a04" stroke="#000" strokeWidth="1" />
+                  </svg>
+                );
+              }
+              // Default: geometric doodle
+              return (
+                <svg width="120" height="120" style={{position:'absolute',left:14,top:14,opacity:.16}} viewBox="0 0 120 120">
+                  <rect x="20" y="20" width="80" height="40" fill="#fde68a" stroke="#000" strokeWidth="2" />
+                </svg>
+              );
+            })()}
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
               <div style={{fontWeight:800,fontSize:'24px',color:'#000'}}>Calendar</div>
               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <button onClick={async()=>{
+                  try{
+                    const backend = (process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
+                    if(!syllabusId){ throw new Error('No syllabus ID'); }
+                    const token = typeof window !== 'undefined' ? (localStorage.getItem('access_token') || '') : '';
+                    const r = await fetch(`${backend}/calendar/sync/${syllabusId}`,{
+                      method:'POST',
+                      headers: token ? { Authorization: `Bearer ${token}` } : undefined
+                    });
+                    if(!r.ok){ throw new Error('Calendar sync failed'); }
+                  }catch(e){ setError(e instanceof Error ? e.message : 'Calendar sync failed'); }
+                }} disabled={!syllabusId} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: syllabusId? '#fff':'#f3f4f6',boxShadow:'3px 3px 0 #000',cursor: syllabusId? 'pointer':'not-allowed'}}>Sync to Google</button>
                 <button onClick={()=>setCalendarView('month')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='month' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Month</button>
                 <button onClick={()=>setCalendarView('week')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='week' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Week</button>
                 <button onClick={()=>setCalendarView('day')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='day' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Day</button>
@@ -369,10 +414,22 @@ export default function UploadPage() {
                 }
                 return (
                   <div>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
-                      <button onClick={()=>setCalendarDate(new Date(year, month - 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'<'}</button>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px',gap:'8px'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                        <button onClick={()=>setCalendarDate(new Date(year, month - 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'<'}</button>
+                        <button onClick={()=>setCalendarDate(new Date(year, month + 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'>'}</button>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                        <select value={month} onChange={(e)=>setCalendarDate(new Date(year, parseInt(e.target.value,10), 1))} style={{border:'3px solid #000',borderRadius:'10px',padding:'6px 8px',background:'#fff',color:'#000'}}>
+                          {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((mName, idx)=>(
+                            <option key={mName} value={idx}>{mName}</option>
+                          ))}
+                        </select>
+                        <input type="number" value={year} onChange={(e)=>{
+                          const y = parseInt(e.target.value,10) || year; setCalendarDate(new Date(y, month, 1));
+                        }} style={{width:90,border:'3px solid #000',borderRadius:'10px',padding:'6px 8px',background:'#fff',color:'#000'}} />
+                      </div>
                       <div style={{fontWeight:700,color:'#000'}}>{now.toLocaleString(undefined,{month:'long',year:'numeric'})}</div>
-                      <button onClick={()=>setCalendarDate(new Date(year, month + 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'>'}</button>
                     </div>
                     <div style={{display:'grid',gridTemplateColumns:'repeat(7, 1fr)',gap:'10px'}}>
                       {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>
