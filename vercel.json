@@ -8,9 +8,17 @@
     {
       "src": "backend/main.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "ai_ml/api.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
+    {
+      "src": "/api/ai/(.*)",
+      "dest": "ai_ml/api.py"
+    },
     {
       "src": "/api/(.*)",
       "dest": "backend/main.py"
@@ -19,5 +27,16 @@
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
-  ]
+  ],
+  "functions": {
+    "backend/main.py": {
+      "runtime": "python3.9"
+    },
+    "ai_ml/api.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "env": {
+    "PYTHONPATH": "/var/task"
+  }
 }
