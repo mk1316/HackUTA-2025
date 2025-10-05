@@ -39,6 +39,8 @@ export default function UploadPage() {
   const [audioUrl, setAudioUrl] = useState<string>('');
   const [showTodo, setShowTodo] = useState<boolean>(false);
   const [showCalendar, setShowCalendar] = useState<boolean>(false);
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [calendarView, setCalendarView] = useState<'month'|'week'|'day'>('month');
   
   // Ref for the hidden file input element
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -311,7 +313,12 @@ export default function UploadPage() {
             </svg>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
               <div style={{fontWeight:800,fontSize:'24px',color:'#000'}}>Calendar</div>
-              <button onClick={()=>setShowCalendar(false)} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Close</button>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <button onClick={()=>setCalendarView('month')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='month' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Month</button>
+                <button onClick={()=>setCalendarView('week')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='week' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Week</button>
+                <button onClick={()=>setCalendarView('day')} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background: calendarView==='day' ? '#e5e7eb' : '#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Day</button>
+                <button onClick={()=>setShowCalendar(false)} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>Close</button>
+              </div>
             </div>
             {(() => {
               const map: Record<string, Array<{ title: string }>> = {};
@@ -326,7 +333,7 @@ export default function UploadPage() {
               result?.projects?.forEach(p => addItem(p.due_date, p.title));
               result?.exams?.forEach(e => addItem(e.date, e.type));
 
-              const now = new Date();
+              const now = calendarDate;
               const year = now.getFullYear();
               const month = now.getMonth();
               const first = new Date(year, month, 1);
@@ -338,39 +345,108 @@ export default function UploadPage() {
                 const wd = new Date(y,m,day).getDay();
                 return wd === 0 || wd === 6;
               };
-
-              const cells: JSX.Element[] = [];
-              for (let i=0;i<startWeekday;i++) cells.push(<div key={'blank-'+i} />);
-              for (let day=1; day<=totalDays; day++) {
-                const dateKey = new Date(year,month,day).toISOString().slice(0,10);
-                const items = map[dateKey] || [];
-                const holiday = isHoliday(year,month,day);
-                cells.push(
-                  <div key={day} style={{border:'2px solid #000',borderRadius:'10px',padding:'8px',background:'#fff',position:'relative',boxShadow:'3px 3px 0 #000'}}>
-                    <div style={{fontWeight:800,color: holiday ? '#dc2626' : '#000'}}>{day}</div>
-                    <div style={{marginTop:'6px',display:'flex',flexDirection:'column',gap:'4px'}}>
-                      {holiday && <div style={{color:'#dc2626',fontSize:'12px'}}>Holiday</div>}
-                      {items.map((it, idx) => (
-                        <div key={idx} style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                          <span role="img" aria-label="reading">📖</span>
-                          <span style={{fontSize:'12px',color:'#000'}}>{it.title}</span>
-                        </div>
-                      ))}
+              const renderMonth = () => {
+                const cells: JSX.Element[] = [];
+                for (let i=0;i<startWeekday;i++) cells.push(<div key={'blank-'+i} />);
+                for (let day=1; day<=totalDays; day++) {
+                  const dateKey = new Date(year,month,day).toISOString().slice(0,10);
+                  const items = map[dateKey] || [];
+                  const holiday = isHoliday(year,month,day);
+                  cells.push(
+                    <div key={day} style={{border:'2px solid #000',borderRadius:'10px',padding:'8px',background:'#fff',position:'relative',boxShadow:'3px 3px 0 #000'}}>
+                      <div style={{fontWeight:800,color: holiday ? '#dc2626' : '#000'}}>{day}</div>
+                      <div style={{marginTop:'6px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                        {holiday && <div style={{color:'#dc2626',fontSize:'12px'}}>Holiday</div>}
+                        {items.map((it, idx) => (
+                          <div key={idx} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                            <span role="img" aria-label="reading">📖</span>
+                            <span style={{fontSize:'12px',color:'#000'}}>{it.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                      <button onClick={()=>setCalendarDate(new Date(year, month - 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'<'}</button>
+                      <div style={{fontWeight:700,color:'#000'}}>{now.toLocaleString(undefined,{month:'long',year:'numeric'})}</div>
+                      <button onClick={()=>setCalendarDate(new Date(year, month + 1, 1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'>'}</button>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(7, 1fr)',gap:'10px'}}>
+                      {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>
+                        <div key={d} style={{textAlign:'center',fontWeight:700,color:'#000'}}>{d}</div>
+                      )}
+                      {cells}
                     </div>
                   </div>
                 );
-              }
-              return (
-                <div>
-                  <div style={{fontWeight:700,marginBottom:'8px',color:'#000'}}>{now.toLocaleString(undefined,{month:'long',year:'numeric'})}</div>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(7, 1fr)',gap:'10px'}}>
-                    {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>
-                      <div key={d} style={{textAlign:'center',fontWeight:700,color:'#000'}}>{d}</div>
-                    )}
-                    {cells}
+              };
+
+              const renderWeek = () => {
+                const dayOfWeek = new Date(year,month, now.getDate()).getDay();
+                const weekStart = new Date(year,month, now.getDate() - dayOfWeek);
+                const days: Date[] = Array.from({length:7}, (_,i)=> new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()+i));
+                return (
+                  <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                      <button onClick={()=>setCalendarDate(new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()-7))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'<'}</button>
+                      <div style={{fontWeight:700,color:'#000'}}>Week of {weekStart.toLocaleDateString()}</div>
+                      <button onClick={()=>setCalendarDate(new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate()+7))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'>'}</button>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(7, 1fr)',gap:'10px'}}>
+                      {days.map((d,i)=>{
+                        const key = d.toISOString().slice(0,10);
+                        const items = map[key] || [];
+                        const holiday = isHoliday(d.getFullYear(), d.getMonth(), d.getDate());
+                        return (
+                          <div key={i} style={{border:'2px solid #000',borderRadius:'10px',padding:'8px',background:'#fff',position:'relative',boxShadow:'3px 3px 0 #000'}}>
+                            <div style={{fontWeight:800,color: holiday ? '#dc2626' : '#000'}}>{d.toLocaleDateString(undefined,{weekday:'short', day:'numeric'})}</div>
+                            <div style={{marginTop:'6px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                              {holiday && <div style={{color:'#dc2626',fontSize:'12px'}}>Holiday</div>}
+                              {items.map((it, idx) => (
+                                <div key={idx} style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                                  <span role="img" aria-label="reading">📖</span>
+                                  <span style={{fontSize:'12px',color:'#000'}}>{it.title}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
+                );
+              };
+
+              const renderDay = () => {
+                const hours = Array.from({length:24}, (_,i)=> i);
+                return (
+                  <div>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'8px'}}>
+                      <button onClick={()=>setCalendarDate(new Date(year, month, now.getDate()-1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'<'}</button>
+                      <div style={{fontWeight:700,color:'#000'}}>{now.toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</div>
+                      <button onClick={()=>setCalendarDate(new Date(year, month, now.getDate()+1))} className="hb-btn" style={{padding:'6px 10px',border:'3px solid #000',borderRadius:'10px',background:'#fff',boxShadow:'3px 3px 0 #000',cursor:'pointer'}}>{'>'}</button>
+                    </div>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr',gap:'6px'}}>
+                      {hours.map(h=>{
+                        const label = `${String(h).padStart(2,'0')}:00`;
+                        return (
+                          <div key={h} style={{display:'grid',gridTemplateColumns:'80px 1fr',alignItems:'start',gap:'8px'}}>
+                            <div style={{fontWeight:700,color:'#000'}}>{label}</div>
+                            <div style={{border:'2px dashed #000',borderRadius:'10px',minHeight:'28px',background:'#fff'}} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              };
+
+              if (calendarView==='week') return renderWeek();
+              if (calendarView==='day') return renderDay();
+              return renderMonth();
             })()}
           </div>
         )}
