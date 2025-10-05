@@ -50,7 +50,6 @@ export function exportToICS(events: ParsedEvent[], courseName: string = 'Course'
     // Handle recurring events (office hours and class meetings)
     if (event.recurrence && event.endDate) {
       const endDate = new Date(event.endDate);
-      const endDateStr = endDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
       ics.push(`DTEND:${dateStr}`);
       
       // Add recurrence rule for weekly events

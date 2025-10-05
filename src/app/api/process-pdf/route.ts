@@ -230,7 +230,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       model: "gemini-2.0-flash-exp",
       contents
     });
-    const rawResponse = (result as any)?.text as string | undefined;
+    const rawResponse = (result as { text?: string }).text;
     if (!rawResponse) {
       throw new Error('Empty response from AI');
     }
