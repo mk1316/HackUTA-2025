@@ -18,8 +18,6 @@ A Next.js application that automatically extracts assignments, exams, projects, 
 ### Prerequisites
 
 
-
-
 1. Get a Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Get an ElevenLabs API key from [ElevenLabs](https://elevenlabs.io/app/settings/api-keys)
 3. Create a `.env.local` file in the root directory with your API keys:
