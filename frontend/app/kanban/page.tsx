@@ -18,7 +18,7 @@ export default function KanbanPage() {
     const mockData = generateMockParsedData();
     const eventsWithStatus = mockData.events.map(event => ({
       ...event,
-      status: Math.random() > 0.7 ? 'completed' : Math.random() > 0.5 ? 'in-progress' : 'pending'
+      status: Math.random() > 0.7 ? 'completed' as const : Math.random() > 0.5 ? 'in-progress' as const : 'pending' as const
     }));
     setEvents(eventsWithStatus);
   }, []);
