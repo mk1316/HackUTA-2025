@@ -1,0 +1,11 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/generate-humorous-summary/route.js")
+R.c("server/chunks/node_modules_next_0e8da7aa._.js")
+R.c("server/chunks/node_modules_tr46_3e4df63f._.js")
+R.c("server/chunks/node_modules_google-auth-library_b89331ac._.js")
+R.c("server/chunks/node_modules_ws_4eadb33f._.js")
+R.c("server/chunks/node_modules_@google_genai_dist_node_index_mjs_0d0d6908._.js")
+R.c("server/chunks/node_modules_9c4e99ab._.js")
+R.c("server/chunks/[root-of-the-server]__52201ddc._.js")
+R.m("[project]/.next-internal/server/app/api/generate-humorous-summary/route/actions.js [app-rsc] (server actions loader, ecmascript)")
+R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/generate-humorous-summary/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)")
+module.exports=R.m("[project]/node_modules/next/dist/esm/build/templates/app-route.js { INNER_APP_ROUTE => \"[project]/src/app/api/generate-humorous-summary/route.ts [app-route] (ecmascript)\" } [app-route] (ecmascript)").exports

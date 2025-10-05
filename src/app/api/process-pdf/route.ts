@@ -58,21 +58,72 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Prepare content for Gemini AI processing with syllabus extraction prompt
     const prompt = `
-    Extract ALL assignments, exams, projects, and important dates from this syllabus PDF.
+    You are a highly accurate syllabus parser. Extract ALL assignments, exams, projects, and important dates from this syllabus PDF.
     
-    FOCUS ON THE "ASSIGNMENTS" COLUMN - look for phrases like "Due by", "Assigned", and specific due dates.
+    🎯 CRITICAL DATE EXTRACTION RULES:
     
-    CRITICAL INSTRUCTIONS:
-    1. Find EVERY assignment, homework, quiz with due dates (look for: "Team:", "Individual:", "HW:", "Assignment", "Assigned", "Due by",)
-    2. Find ALL exams (Midterm, Finals, Reviews, etc.) and their dates
-    3. Find ALL projects, presentations, reports, and their due dates
-    4. Extract team member evaluations, sprint plans, sprint reviews, and any other graded work
-    5. Include the full title/description for each item
-    6. Convert all dates to YYYY-MM-DD format (assume year 2025 if not specified)
-    7. If a date range is given (e.g., "8/18-8/22"), use the END date as the due date
-    8. Pay special attention to items with time stamps like "11:59PM" - these are important deadlines
+    1. FIND THE YEAR/SEMESTER FIRST:
+       - Look for "Fall 2025", "Spring 2025", "2025", etc. in the syllabus header
+       - Determine the correct year from context
+       - If year is ambiguous, use the most recent/upcoming year
     
-    Return ONLY valid JSON in this exact format (no markdown, no extra text):
+    2. SCAN ALL SECTIONS:
+       - Course schedules, calendars, timelines
+       - Assignment tables, grading sections
+       - Important dates sections
+       - Week-by-week schedules
+       - Any tables or lists with dates
+    
+    3. DATE FORMAT HANDLING (convert ALL to YYYY-MM-DD):
+       - "August 23, 2025" → "2025-08-23"
+       - "Aug 23" → "2025-08-23" (add inferred year)
+       - "8/23/2025" → "2025-08-23"
+       - "8/23" → "2025-08-23" (add inferred year)
+       - "Dec 2" → "2025-12-02" (add inferred year)
+       - Date ranges like "8/18-8/22" → use END date "2025-08-22"
+       - Week numbers like "Week 3 (Sept 11)" → extract "2025-09-11"
+    
+    4. VALIDATE ALL DATES:
+       - Ensure month is 01-12
+       - Ensure day is valid for that month (e.g., no Feb 30)
+       - Ensure year is reasonable (2024-2026)
+       - NEVER output "Invalid Date" - if unsure, use the closest valid date
+    
+    5. FIND THESE ITEMS:
+       - ✅ ALL homework/assignments (HW1, HW2, Assignment 1, etc.)
+       - ✅ ALL exams (Midterm, Final, Quiz 1, Test, Review)
+       - ✅ ALL projects (Team Project, Individual Report, Presentation)
+       - ✅ Sprint plans, sprint reviews, retrospectives
+       - ✅ Surveys, evaluations, peer reviews
+       - ✅ Lab work, practicals, workshops
+       - ✅ Discussion posts, forums, reflections
+    
+    6. EXTRACT FULL TITLES:
+       - Use complete names: "Team Formation and Project Preferences" not "Team"
+       - Include numbers: "Sprint 4 Individual Report" not "Individual Report"
+       - Keep descriptive details: "Self-intro and Project Preferences"
+    
+    7. COMMON PATTERNS TO LOOK FOR:
+       - "Due:" or "Due by:" or "Due on:"
+       - Dates next to assignment names in tables
+       - Calendar grids with dates and assignments
+       - Timeline formats
+       - Parenthetical dates like "Assignment 1 (Sept 15)"
+    
+    📋 EXAMPLE DATE CONVERSIONS:
+    - "Sep 11, 2025" → "2025-09-11"
+    - "9/11" with year 2025 → "2025-09-11"
+    - "September 11" with year 2025 → "2025-09-11"
+    - "Week 1 (Aug 23)" with year 2025 → "2025-08-23"
+    
+    ⚠️ QUALITY CHECKS BEFORE RETURNING:
+    - Did you check EVERY section of the syllabus?
+    - Are ALL dates in valid YYYY-MM-DD format?
+    - Did you include assignment numbers (Sprint 1, Sprint 2, etc.)?
+    - Are there at least 5-10 items if this is a full semester course?
+    - Did you check tables, schedules, and calendar sections?
+    
+    Return ONLY valid JSON in this exact format (no markdown, no extra text, no code blocks):
     {
         "course_name": "Full Course Name",
         "course_code": "Course Code",
@@ -84,7 +135,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         "class_schedule": "Class meeting schedule",
         "homework": [
             {
-                "title": "Assignment Title",
+                "title": "Complete Assignment Title",
                 "due_date": "YYYY-MM-DD",
                 "description": "Assignment description"
             }
@@ -98,7 +149,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         ],
         "projects": [
             {
-                "title": "Project Title",
+                "title": "Complete Project Title",
                 "due_date": "YYYY-MM-DD",
                 "description": "Project description"
             }
@@ -125,6 +176,30 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
     const rawResponse = result.text;
 
+    // Helper function to validate and fix dates
+    const validateDate = (dateStr: string): string => {
+      if (!dateStr) return new Date().toISOString().split('T')[0];
+      
+      // Check if already in valid YYYY-MM-DD format
+      const isoMatch = dateStr.match(/^\d{4}-\d{2}-\d{2}$/);
+      if (isoMatch) {
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          return dateStr;
+        }
+      }
+      
+      // Try to parse various formats
+      const date = new Date(dateStr);
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+      
+      // If all else fails, return today's date
+      console.warn(`Invalid date detected: ${dateStr}, using current date`);
+      return new Date().toISOString().split('T')[0];
+    };
+
     // Parse the JSON response from Gemini
     let parsedData;
     try {
@@ -141,6 +216,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       
       const jsonString = jsonMatch[0];
       parsedData = JSON.parse(jsonString);
+      
+      // Validate and fix all dates in the parsed data
+      if (parsedData.homework && Array.isArray(parsedData.homework)) {
+        parsedData.homework = parsedData.homework.map((hw: any) => ({
+          ...hw,
+          due_date: validateDate(hw.due_date)
+        }));
+      }
+      
+      if (parsedData.exams && Array.isArray(parsedData.exams)) {
+        parsedData.exams = parsedData.exams.map((exam: any) => ({
+          ...exam,
+          date: validateDate(exam.date)
+        }));
+      }
+      
+      if (parsedData.projects && Array.isArray(parsedData.projects)) {
+        parsedData.projects = parsedData.projects.map((project: any) => ({
+          ...project,
+          due_date: validateDate(project.due_date)
+        }));
+      }
+      
+      console.log('Successfully parsed and validated:', {
+        courseName: parsedData.course_name,
+        assignmentCount: parsedData.homework?.length || 0,
+        examCount: parsedData.exams?.length || 0,
+        projectCount: parsedData.projects?.length || 0
+      });
+      
     } catch (parseError) {
       console.error('Error parsing JSON response:', parseError);
       return NextResponse.json(
