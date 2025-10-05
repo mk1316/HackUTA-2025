@@ -22,7 +22,17 @@ export default function FileUpload({
   const [dragActive, setDragActive] = useState(false);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    console.log('📂 Files dropped:', {
+      count: acceptedFiles.length,
+      files: acceptedFiles.map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type
+      }))
+    });
+    
     if (acceptedFiles.length > 0) {
+      console.log('✅ File accepted, calling onFileSelect');
       onFileSelect(acceptedFiles[0]);
     }
   }, [onFileSelect]);
@@ -36,10 +46,28 @@ export default function FileUpload({
       'text/plain': ['.txt']
     },
     maxFiles: 1,
-    onDragEnter: () => setDragActive(true),
-    onDragLeave: () => setDragActive(false),
-    onDropAccepted: () => setDragActive(false),
-    onDropRejected: () => setDragActive(false)
+    onDragEnter: () => {
+      console.log('🎯 Drag enter detected');
+      setDragActive(true);
+    },
+    onDragLeave: () => {
+      console.log('👋 Drag leave detected');
+      setDragActive(false);
+    },
+    onDropAccepted: () => {
+      console.log('✅ Drop accepted');
+      setDragActive(false);
+    },
+    onDropRejected: (fileRejections) => {
+      console.log('❌ Drop rejected:', {
+        count: fileRejections.length,
+        errors: fileRejections.map(fr => ({
+          file: fr.file.name,
+          errors: fr.errors.map(e => e.message)
+        }))
+      });
+      setDragActive(false);
+    }
   });
 
   const formatFileSize = (bytes: number) => {
