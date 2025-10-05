@@ -68,8 +68,8 @@ pdf2image
 pytesseract
 Pillow
 
-# Google Generative AI (alternative to google-genai)
-google-generativeai
+# Google Generative AI - new SDK with document understanding
+google-genai
 
 # FastAPI file upload support
 python-multipart
