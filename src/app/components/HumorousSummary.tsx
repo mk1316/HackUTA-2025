@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 interface HumorousSummaryProps {
-  summary: string;
+  readonly summary: string;
 }
 
 /**
@@ -38,7 +38,9 @@ export default function HumorousSummary({ summary }: HumorousSummaryProps) {
         const url = URL.createObjectURL(audioBlob);
         setAudioUrl(url);
       } catch (err) {
-        setAudioError(err instanceof Error ? err.message : 'Failed to generate audio');
+        const errorMsg = err instanceof Error ? err.message : 'Failed to generate audio';
+        setAudioError(errorMsg);
+        console.error('Audio generation error:', errorMsg);
       } finally {
         setIsGeneratingAudio(false);
       }
@@ -127,8 +129,22 @@ export default function HumorousSummary({ summary }: HumorousSummaryProps) {
 
           {/* Audio Error Display */}
           {audioError && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-              <p className="text-sm text-red-700 dark:text-red-300">{audioError}</p>
+            <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium mb-1">
+                ⚠️ Audio Generation Unavailable
+              </p>
+              <p className="text-xs text-yellow-700 dark:text-yellow-400">
+                To enable audio summaries, add a valid ElevenLabs API key to your .env.local file.
+                Get your free API key at{' '}
+                <a 
+                  href="https://elevenlabs.io/app/settings/api-keys" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="underline hover:text-yellow-900 dark:hover:text-yellow-200"
+                >
+                  elevenlabs.io
+                </a>
+              </p>
             </div>
           )}
 
@@ -139,16 +155,20 @@ export default function HumorousSummary({ summary }: HumorousSummaryProps) {
               src={audioUrl}
               onEnded={handleAudioEnded}
               preload="metadata"
-            />
+            >
+              <track kind="captions" />
+            </audio>
           )}
 
           {/* Summary Status */}
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            {audioUrl ? (
+            {audioUrl && (
               <p>✅ Audio summary ready! Click play to listen to your hilarious course overview.</p>
-            ) : isGeneratingAudio ? (
+            )}
+            {!audioUrl && isGeneratingAudio && (
               <p>🎛️ Converting your summary to audio...</p>
-            ) : (
+            )}
+            {!audioUrl && !isGeneratingAudio && (
               <p>📝 Text summary generated. Preparing audio...</p>
             )}
           </div>
