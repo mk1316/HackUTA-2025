@@ -1,6 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from '@google/genai';
 
+// Types for parsed AI response
+type HomeworkItem = { title?: string; due_date?: string; description?: string };
+type ExamItem = { type?: string; date?: string; description?: string };
+type ProjectItem = { title?: string; due_date?: string; description?: string };
+type OfficeHourItem = {
+  day?: string;
+  time?: string;
+  location?: string;
+  recurrence?: string;
+  start_date?: string;
+  end_date?: string;
+};
+type ClassMeetingItem = {
+  days?: string[] | string;
+  time?: string;
+  location?: string;
+  recurrence?: string;
+  start_date?: string;
+  end_date?: string;
+};
+
+type ParsedResponse = {
+  course_name?: string;
+  course_code?: string;
+  professor?: { name?: string; email?: string; office_hours?: string };
+  class_schedule?: string;
+  homework?: HomeworkItem[];
+  exams?: ExamItem[];
+  projects?: ProjectItem[];
+  office_hours?: OfficeHourItem[];
+  class_meetings?: ClassMeetingItem[];
+  [key: string]: unknown;
+};
+
 /**
  * API route for processing PDF files with Gemini AI
  * Handles file upload, validation, and AI-powered summarization
@@ -199,7 +233,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const rawResponse = result.text;
 
     // Helper function to validate and fix dates
-    const validateDate = (dateStr: string): string => {
+    const validateDate = (dateStr?: string): string => {
       if (!dateStr) return new Date().toISOString().split('T')[0];
       
       // Check if already in valid YYYY-MM-DD format
@@ -223,7 +257,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     };
 
     // Parse the JSON response from Gemini
-    let parsedData;
+    let parsedData: ParsedResponse;
     try {
       // Validate response exists
       if (!rawResponse) {
@@ -241,28 +275,28 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       
       // Validate and fix all dates in the parsed data
       if (parsedData.homework && Array.isArray(parsedData.homework)) {
-        parsedData.homework = parsedData.homework.map((hw: any) => ({
+        parsedData.homework = parsedData.homework.map((hw: HomeworkItem): HomeworkItem => ({
           ...hw,
           due_date: validateDate(hw.due_date)
         }));
       }
       
       if (parsedData.exams && Array.isArray(parsedData.exams)) {
-        parsedData.exams = parsedData.exams.map((exam: any) => ({
+        parsedData.exams = parsedData.exams.map((exam: ExamItem): ExamItem => ({
           ...exam,
           date: validateDate(exam.date)
         }));
       }
       
       if (parsedData.projects && Array.isArray(parsedData.projects)) {
-        parsedData.projects = parsedData.projects.map((project: any) => ({
+        parsedData.projects = parsedData.projects.map((project: ProjectItem): ProjectItem => ({
           ...project,
           due_date: validateDate(project.due_date)
         }));
       }
       
       if (parsedData.office_hours && Array.isArray(parsedData.office_hours)) {
-        parsedData.office_hours = parsedData.office_hours.map((oh: any) => ({
+        parsedData.office_hours = parsedData.office_hours.map((oh: OfficeHourItem): OfficeHourItem => ({
           ...oh,
           start_date: validateDate(oh.start_date),
           end_date: validateDate(oh.end_date)
@@ -270,7 +304,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
       
       if (parsedData.class_meetings && Array.isArray(parsedData.class_meetings)) {
-        parsedData.class_meetings = parsedData.class_meetings.map((cm: any) => ({
+        parsedData.class_meetings = parsedData.class_meetings.map((cm: ClassMeetingItem): ClassMeetingItem => ({
           ...cm,
           start_date: validateDate(cm.start_date),
           end_date: validateDate(cm.end_date)

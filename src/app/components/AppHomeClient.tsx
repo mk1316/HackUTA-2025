@@ -177,6 +177,12 @@ export default function AppHomeClient() {
               onGenerateHumorousSummary={handleGenerateHumorousSummary}
             />
           )}
+          {humorousSummary && (
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow p-3 w-full text-sm text-gray-900 dark:text-gray-100">
+              <div className="font-semibold mb-1">Humorous Summary</div>
+              <p>{humorousSummary}</p>
+            </div>
+          )}
           {isGeneratingAudio && (
             <div className="bg-gray-900 text-white rounded-md shadow px-4 py-2 text-sm flex items-center gap-2">
               <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
