@@ -26,10 +26,11 @@ async def get_parsed_syllabus(file_bytes: bytes, filename: str) -> dict:
         }
         
         # Send request to AI/ML microservice
+        # Increased timeout to 120 seconds for Gemini API processing
         response = requests.post(
             f"{AI_ML_URL}/extract",
             files=files,
-            timeout=30
+            timeout=120
         )
         
         if response.status_code != 200:

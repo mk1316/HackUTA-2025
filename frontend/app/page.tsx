@@ -8,6 +8,7 @@ import AnimatedBackground from './components/AnimatedBackground';
 import { generateMockParsedData } from './utils/mockData';
 import { ParsedSyllabus, ParsedEvent } from './types/syllabus';
 import { Calendar, FileText, Clock, CheckCircle, Sparkles, Zap, Target, ArrowRight } from 'lucide-react';
+import { uploadSyllabus } from './lib/api';
 
 export default function Home() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -48,17 +49,91 @@ export default function Home() {
     setError(null);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Call real API to upload and process syllabus
+      const result = await uploadSyllabus(selectedFile);
       
-      // Generate mock parsed data
-      const mockData = generateMockParsedData();
-      setParsedData(mockData);
+      if (!result.success || !result.data) {
+        throw new Error(result.error || 'Failed to process syllabus');
+      }
+      
+      // Transform backend response to frontend format
+      const backendData = result.data;
+      
+      // Debug: Log what we received from backend
+      console.log('📊 Backend data:', backendData);
+      console.log('📝 Homework:', backendData.homework);
+      console.log('📊 Exams:', backendData.exams);
+      console.log('🔬 Projects:', backendData.projects);
+      
+      // Store for debugging
+      (window as any).lastSyllabusData = backendData;
+      
+      // Show alert with counts
+      const hwCount = (backendData.homework || []).length;
+      const examCount = (backendData.exams || []).length;
+      const projectCount = (backendData.projects || []).length;
+      console.log(`Found: ${hwCount} homework, ${examCount} exams, ${projectCount} projects`);
+      
+      // Combine homework, exams, and projects into events array
+      const allEvents: any[] = [];
+      
+      // Add homework assignments
+      (backendData.homework || []).forEach((hw: any) => {
+        allEvents.push({
+          title: hw.title || 'Untitled Assignment',
+          type: 'assignment',
+          dueDate: hw.due_date || new Date().toISOString(),
+          description: hw.description || '',
+        });
+      });
+      
+      // Add exams
+      (backendData.exams || []).forEach((exam: any) => {
+        allEvents.push({
+          title: exam.type || 'Exam',
+          type: 'exam',
+          dueDate: exam.date || new Date().toISOString(),
+          description: exam.description || '',
+        });
+      });
+      
+      // Add projects
+      (backendData.projects || []).forEach((project: any) => {
+        allEvents.push({
+          title: project.title || 'Project',
+          type: 'project',
+          dueDate: project.due_date || new Date().toISOString(),
+          description: project.description || '',
+        });
+      });
+      
+      const transformedData: ParsedSyllabus = {
+        courseName: backendData.course_name || 'Unknown Course',
+        courseCode: backendData.course_code || '',
+        professor: backendData.professor?.name || '',
+        events: allEvents.map((event: any, index: number) => ({
+          id: `event-${index}`,
+          title: event.title,
+          type: event.type,
+          dueDate: event.dueDate,
+          dueTime: event.dueTime || '',
+          description: event.description,
+          points: event.points,
+          weight: event.weight,
+          priority: 'medium' as const,
+          courseCode: backendData.course_code || '',
+          location: '',
+          status: 'pending' as const
+        }))
+      };
+      
+      setParsedData(transformedData);
       setShowParsedModal(true);
       
-      console.log('Processing syllabus:', selectedFile.name);
+      console.log('Successfully processed syllabus:', selectedFile.name);
     } catch (err) {
-      setError('Failed to process syllabus. Please try again.');
+      console.error('Error processing syllabus:', err);
+      setError(err instanceof Error ? err.message : 'Failed to process syllabus. Please try again.');
     } finally {
       setIsProcessing(false);
     }
